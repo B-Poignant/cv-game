@@ -128,7 +128,7 @@ Conventions: `tests/README.md`. To write tests, use the `write-tests` skill
   until it had been on once, which broke Tab-to-building (F-030). Don't pin Pixi below 8.22;
   `tests/e2e/cv-panels.spec.ts` catches it.
 - **Tiles are centred on whole numbers.** Tile `c` covers `c - 0.5` to `c + 0.5`, and
-  positions round to the nearest tile, so a 20-tile axis spans -0.5 to 19.5. Check bounds
+  positions round to the nearest tile, so a 24-tile axis spans -0.5 to 23.5. Check bounds
   with `isInsideGrid` / `isInsideMap` (`shared/world.ts`), never with `0 <= x < size`.
 - **CSS `display` beats the `hidden` attribute.** Any class that sets `display` on an element
   toggled with `hidden` needs a `[hidden] { display: none; }` rule (see `.cv-backdrop`).
@@ -168,6 +168,7 @@ Use these instead of improvising, so the work is done the same way every time.
 | Sync docs after a feature/important change | `update-docs` skill (large changes: `docs-keeper` agent) |
 | Add / upgrade / remove an npm package      | `add-dependency` skill                                   |
 | Install a Claude plugin / MCP / skill pack | `add-plugin` skill                                       |
+| Update the CV from the owner's LinkedIn    | `sync-cv` skill                                          |
 | Commit / push                              | `commit` skill                                           |
 | Cut a release                              | `release` skill                                          |
 | Audit docs ↔ code drift, test gaps         | `project-auditor` agent                                  |

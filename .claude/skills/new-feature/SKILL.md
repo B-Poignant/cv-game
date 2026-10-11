@@ -16,7 +16,7 @@ row plus a short detail block (What / To do), with status 💡 or 📋. Don't wr
 ## 1. Register it
 
 - Look in `docs/FEATURES.md` for an existing entry (planned or partial). Reuse its ID.
-- Otherwise create one with the next free ID in its area.
+- Otherwise create one with the next free ID in its area, with its roadmap phase (or `—`).
 - Set the status to 🚧.
 
 ## 2. Agree the scope

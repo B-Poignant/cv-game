@@ -23,3 +23,6 @@ docs
 Dockerfile
 .dockerignore
 compose.yaml
+
+# Raw LinkedIn export (sync-cv skill)
+cv-source

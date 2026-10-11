@@ -181,6 +181,7 @@ recurring tasks the same way every time:
   - `/update-docs`: sync FEATURES, CHANGELOG, README and CLAUDE.md with the code
   - `/add-dependency`: add or upgrade npm packages safely
   - `/add-plugin`: check where a Claude plugin comes from and what it does before installing it
+  - `/sync-cv`: update the CV from your LinkedIn export (or profile PDF), change by change
   - `/commit`: scope, secrets, identity and checks before a commit or push
   - `/release`: version bump, changelog and tag
 - **Agents** (`.claude/agents/`): `docs-keeper` updates docs without filling the main

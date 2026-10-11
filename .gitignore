@@ -38,3 +38,6 @@ coverage
 test-results
 playwright-report
 blob-report
+
+# Raw LinkedIn export for the sync-cv skill (private, never committed)
+cv-source
