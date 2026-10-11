@@ -17,8 +17,8 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 - F-052: a chat log in the bottom-left corner keeps every message: Ben's lines
   ("Ben: Do you even know what I do?", his answers to a pitch) and game notices (new intel,
   "Get closer…"). They used to flash for 4 s under the intel cards.
-- F-043 (in progress): a good pitch now shows how to reach the dev for real: his LinkedIn,
-  with a copy button. The CV PDF download will follow.
+- F-043: a good pitch now shows how to reach the dev for real: his LinkedIn and email,
+  each with a copy button, and a "Download my CV (PDF)" link.
 - F-042: catch Ben and pitch him a job. Touching him with 3 intel cards opens an offer
   dialog (stack, work mode, role, opening line). The server detects the catch, scores the
   offer against the owner's real preferences, and Ben answers: hired, or a hint at what was
@@ -41,10 +41,10 @@ to [docs/FEATURES.md](docs/FEATURES.md).
   `npm start` runs one process that serves the game and the multiplayer room on `PORT`
   (default 2567), with a `GET /health` check. The client connects to its own origin in
   production, or to `VITE_SERVER_URL`.
-- F-081 (in progress): `Dockerfile` (Node 24 Alpine, non-root, health check),
-  `.dockerignore` and `compose.yaml`. Not built yet.
-- F-082 (in progress): CI runs `npm run build` and a new `docker` job builds the image and
-  smoke-tests the container. Not run yet.
+- F-081: `Dockerfile` (Node 24 Alpine, non-root, health check),
+  `.dockerignore` and `compose.yaml`, built and smoke-tested in CI.
+- F-082: CI runs `npm run build` and a new `docker` job builds the image and
+  smoke-tests the container on every push and PR.
 - F-080–F-084 (planned): delivery & deployment track in `docs/FEATURES.md`: production
   server config, a Docker image (server + built client), CI image build and smoke test,
   publishing the image to GHCR on release, and deploying to a host (still to choose).

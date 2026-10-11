@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { existsSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 import { CONTACT } from "../../../src/content/contact";
@@ -20,7 +21,7 @@ function rows(section: HTMLElement) {
 
 // F-043
 describe("renderReward", () => {
-  it("lists the owner's LinkedIn", () => {
+  it("lists the owner's LinkedIn and email", () => {
     const section = renderReward(CONTACT);
 
     expect(rows(section)).toEqual([
@@ -29,7 +30,23 @@ describe("renderReward", () => {
         text: "linkedin.com/in/benjaminpoignant",
         href: "https://www.linkedin.com/in/benjaminpoignant",
       },
+      {
+        label: "Email",
+        text: "benjipoi@hotmail.com",
+        href: "mailto:benjipoi@hotmail.com",
+      },
     ]);
+  });
+
+  it("offers the owner's CV PDF, served from public/", () => {
+    const download =
+      renderReward(CONTACT).querySelector<HTMLAnchorElement>(
+        ".reward__download",
+      );
+
+    expect(download?.getAttribute("href")).toBe("/CV_POIGNANT_BENJAMIN.pdf");
+    // Vite serves public/ at the site root, in dev and in the production build.
+    expect(existsSync(`public${CONTACT.cvPdf ?? ""}`)).toBe(true);
   });
 
   it("shows only the details the owner shared", () => {

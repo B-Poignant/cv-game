@@ -192,9 +192,10 @@ chest", "Hired in under 2 minutes", "Pitched like a pro" (first try).
 - [x] The dev's real preferences: stack and work mode (F-042). Still open: role types and
       deal-breakers.
 - [ ] Review the skill levels in `src/content/cv.ts` (derived from years of use)
-- [ ] Contact details to reveal, and the CV PDF file (F-043)
+- [x] Contact details to reveal, and the CV PDF file (F-043): LinkedIn, email, `public/CV_POIGNANT_BENJAMIN.pdf`
 - [x] The dev's name and look (F-060): Ben, jeans, white shirt, glasses
-- [ ] Which districts besides Skills and Experience, and where they go on the map (F-005)
+- [x] Which districts besides Skills and Experience, and where they go on the map (F-005):
+      Education Campus (bottom-left); the bottom-right quarter waits for the Projects Lab
 - [x] Should a straight chase be enough to catch the dev? No: he sprints when a recruiter
       gets very close, so recruiters have to corner him (F-061).
 

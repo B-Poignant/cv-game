@@ -4,64 +4,69 @@ Every feature of cv-game, current and planned, and how each one works.
 
 **Legend:** ✅ Done · 🚧 Partial / in progress · 📋 Planned · 💡 Idea
 
+**Phase:** the [Roadmap](#roadmap) phase (1–4) that builds the feature, **Delivery** for the
+delivery & deployment track, **—** for features outside the roadmap (the engine built before
+it, or unscheduled).
+
 **Rules**
 
 - IDs are grouped by area (`F-00x` world, `F-01x` player, `F-02x` multiplayer, `F-03x` CV
   content, `F-04x` interactions, `F-05x` display, `F-06x` story & the dev, `F-07x` minigames, `F-08x` delivery & deployment). **Never reuse an ID.** Take the next free number in the area.
 - A feature is ✅ only when its code **and** tests exist. Write "none (gap)" when tests are missing.
 - Removed features move to [Removed](#removed) and keep their ID.
+- The Phase column matches the [Roadmap](#roadmap) table: change both together.
 - Planned features follow the story in [GAME_DESIGN.md](GAME_DESIGN.md) ("Headhunted").
 - Keep this file in sync with the `update-docs` skill. To start a feature, use the
   `new-feature` skill.
 
 ## Summary
 
-| ID                                                  | Feature                                  | Status | Code                                                                                                      | Tests                       |
-| --------------------------------------------------- | ---------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------- | --------------------------- |
-| **World**                                           |                                          |        |                                                                                                           |                             |
-| [F-001](#f-001-isometric-tile-map)                  | Isometric 24×24 tile map                 | ✅     | `src/game/Map.ts`, `src/game/IsometricConverter.ts`                                                       | unit                        |
-| [F-002](#f-002-camera-fit-and-resize)               | Camera fits the map, refits on resize    | ✅     | `src/game/Camera.ts`                                                                                      | unit, e2e                   |
-| [F-003](#f-003-buildings-defined-in-config)         | Buildings defined in config              | ✅     | `shared/buildings.ts`, `src/game/factories/`, `src/game/entities/Building.ts`                             | unit                        |
-| [F-004](#f-004-depth-sorting)                       | Depth sorting                            | ✅     | `src/scenes/MainScene.ts`                                                                                 | unit                        |
-| [F-005](#f-005-map-as-cv)                           | Map as CV: districts per section         | ✅     | `shared/districts.ts`, `src/game/entities/DistrictGround.ts`                                              | unit, integration, e2e      |
-| **Player**                                          |                                          |        |                                                                                                           |                             |
-| [F-010](#f-010-keyboard-movement)                   | Keyboard movement (arrows / ZQSD / WASD) | ✅     | `src/game/Player.ts`                                                                                      | unit                        |
-| [F-011](#f-011-collisions)                          | Collisions with buildings and map edges  | ✅     | `shared/CollisionMap.ts`, `src/game/Map.ts`                                                               | unit                        |
-| [F-012](#f-012-recruiter-identity)                  | Recruiter identity (name + company)      | ✅     | `shared/recruiters.ts`, `src/ui/IdentityPanel.ts`, `src/game/entities/NameTag.ts`                         | unit, integration, e2e      |
-| **Multiplayer**                                     |                                          |        |                                                                                                           |                             |
-| [F-020](#f-020-join-a-shared-room)                  | Join a shared room                       | ✅     | `src/network/MultiplayerClient.ts`, `server/rooms/CvRoom.ts`                                              | integration, e2e            |
-| [F-021](#f-021-see-other-visitors-move)             | See other visitors move live             | ✅     | `src/network/RemotePlayersManager.ts`, `src/network/RemotePlayer.ts`                                      | unit, integration, e2e      |
-| [F-022](#f-022-server-side-move-validation)         | Server checks every move                 | ✅     | `server/rooms/CvRoom.ts`                                                                                  | integration                 |
-| [F-023](#f-023-single-player-fallback)              | Single-player when the server is down    | ✅     | `src/scenes/MainScene.ts`                                                                                 | unit                        |
-| **CV content**                                      |                                          |        |                                                                                                           |                             |
-| [F-030](#f-030-cv-content-and-section-panels)       | CV content + section panels              | ✅     | `src/content/`, `src/ui/CvPanel.ts`, `src/ui/cvSections.ts`                                               | unit, e2e                   |
-| [F-031](#f-031-intel-cards)                         | Intel cards                              | ✅     | `shared/intel.ts`, `src/content/intel.ts`, `src/ui/IntelInventory.ts`, `src/network/LocalIntel.ts`        | unit, integration, e2e      |
-| **Interactions**                                    |                                          |        |                                                                                                           |                             |
-| [F-040](#f-040-clickable-chest)                     | Clickable chest on the map               | 🚧     | `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`                                | unit, integration           |
-| [F-041](#f-041-achievements)                        | Achievements                             | 📋     | —                                                                                                         | —                           |
-| [F-042](#f-042-catch-and-pitch)                     | Catch + pitch dialog                     | ✅     | `shared/pitch.ts`, `server/rooms/PitchTracker.ts`, `src/network/PitchChannel.ts`, `src/ui/PitchDialog.ts` | unit, integration, e2e      |
-| [F-043](#f-043-reward-panel)                        | Reward panel: contact info + CV PDF      | 🚧     | `src/content/contact.ts`, `src/ui/rewardSection.ts`, `src/ui/PitchFlow.ts`                                | unit                        |
-| **Display**                                         |                                          |        |                                                                                                           |                             |
-| [F-050](#f-050-theme-switcher)                      | Theme switcher (button top-left)         | ✅     | `src/config/themes.ts`, `src/game/ThemeCycle.ts`, `src/ui/ThemeButton.ts`                                 | unit, e2e                   |
-| [F-051](#f-051-debug-mode)                          | Debug mode (clickable icon + overlay)    | 💡     | —                                                                                                         | —                           |
-| [F-052](#f-052-chat-log)                            | Chat log (bottom-left)                   | ✅     | `src/ui/ChatLog.ts`                                                                                       | unit, e2e                   |
-| **Story & the dev**                                 |                                          |        |                                                                                                           |                             |
-| [F-060](#f-060-the-dev-wanders)                     | The dev wanders the map (server-run NPC) | ✅     | `server/rooms/DevWanderer.ts`, `src/network/RemoteDev.ts`, `src/game/entities/Dev.ts`                     | unit, integration, e2e      |
-| [F-061](#f-061-the-dev-runs-away)                   | The dev runs away from recruiters        | ✅     | `server/rooms/flee.ts`, `server/rooms/DevWanderer.ts`                                                     | unit, integration           |
-| [F-062](#f-062-dev-speech-bubbles)                  | Dev speech bubbles                       | 💡     | —                                                                                                         | —                           |
-| [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | 💡     | —                                                                                                         | —                           |
-| **Minigames**                                       |                                          |        |                                                                                                           |                             |
-| [F-070](#f-070-minigame-framework)                  | Minigame framework                       | 📋     | —                                                                                                         | —                           |
-| [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | 📋     | —                                                                                                         | —                           |
-| [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | 💡     | —                                                                                                         | —                           |
-| [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | —                                                                                                         | —                           |
-| [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | 💡     | —                                                                                                         | —                           |
-| **Delivery & deployment**                           |                                          |        |                                                                                                           |                             |
-| [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration           |
-| [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | 🚧     | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test (not run yet) |
-| [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | 🚧     | `.github/workflows/ci.yml`                                                                                | —                           |
-| [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | 📋     | —                                                                                                         | —                           |
-| [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | 💡     | —                                                                                                         | —                           |
+| ID                                                  | Feature                                  | Status | Phase    | Code                                                                                                      | Tests                  |
+| --------------------------------------------------- | ---------------------------------------- | ------ | -------- | --------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **World**                                           |                                          |        |          |                                                                                                           |                        |
+| [F-001](#f-001-isometric-tile-map)                  | Isometric 24×24 tile map                 | ✅     | —        | `src/game/Map.ts`, `src/game/IsometricConverter.ts`                                                       | unit                   |
+| [F-002](#f-002-camera-fit-and-resize)               | Camera fits the map, refits on resize    | ✅     | —        | `src/game/Camera.ts`                                                                                      | unit, e2e              |
+| [F-003](#f-003-buildings-defined-in-config)         | Buildings defined in config              | ✅     | —        | `shared/buildings.ts`, `src/game/factories/`, `src/game/entities/Building.ts`                             | unit                   |
+| [F-004](#f-004-depth-sorting)                       | Depth sorting                            | ✅     | —        | `src/scenes/MainScene.ts`                                                                                 | unit                   |
+| [F-005](#f-005-map-as-cv)                           | Map as CV: districts per section         | ✅     | 1        | `shared/districts.ts`, `src/game/entities/DistrictGround.ts`                                              | unit, integration, e2e |
+| **Player**                                          |                                          |        |          |                                                                                                           |                        |
+| [F-010](#f-010-keyboard-movement)                   | Keyboard movement (arrows / ZQSD / WASD) | ✅     | —        | `src/game/Player.ts`                                                                                      | unit                   |
+| [F-011](#f-011-collisions)                          | Collisions with buildings and map edges  | ✅     | —        | `shared/CollisionMap.ts`, `src/game/Map.ts`                                                               | unit                   |
+| [F-012](#f-012-recruiter-identity)                  | Recruiter identity (name + company)      | ✅     | 1        | `shared/recruiters.ts`, `src/ui/IdentityPanel.ts`, `src/game/entities/NameTag.ts`                         | unit, integration, e2e |
+| **Multiplayer**                                     |                                          |        |          |                                                                                                           |                        |
+| [F-020](#f-020-join-a-shared-room)                  | Join a shared room                       | ✅     | —        | `src/network/MultiplayerClient.ts`, `server/rooms/CvRoom.ts`                                              | integration, e2e       |
+| [F-021](#f-021-see-other-visitors-move)             | See other visitors move live             | ✅     | —        | `src/network/RemotePlayersManager.ts`, `src/network/RemotePlayer.ts`                                      | unit, integration, e2e |
+| [F-022](#f-022-server-side-move-validation)         | Server checks every move                 | ✅     | —        | `server/rooms/CvRoom.ts`                                                                                  | integration            |
+| [F-023](#f-023-single-player-fallback)              | Single-player when the server is down    | ✅     | —        | `src/scenes/MainScene.ts`                                                                                 | unit                   |
+| **CV content**                                      |                                          |        |          |                                                                                                           |                        |
+| [F-030](#f-030-cv-content-and-section-panels)       | CV content + section panels              | ✅     | 1        | `src/content/`, `src/ui/CvPanel.ts`, `src/ui/cvSections.ts`                                               | unit, e2e              |
+| [F-031](#f-031-intel-cards)                         | Intel cards                              | ✅     | 2        | `shared/intel.ts`, `src/content/intel.ts`, `src/ui/IntelInventory.ts`, `src/network/LocalIntel.ts`        | unit, integration, e2e |
+| **Interactions**                                    |                                          |        |          |                                                                                                           |                        |
+| [F-040](#f-040-clickable-chest)                     | Clickable chest on the map               | 🚧     | —        | `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`                                | unit, integration      |
+| [F-041](#f-041-achievements)                        | Achievements                             | 📋     | 4        | —                                                                                                         | —                      |
+| [F-042](#f-042-catch-and-pitch)                     | Catch + pitch dialog                     | ✅     | 2        | `shared/pitch.ts`, `server/rooms/PitchTracker.ts`, `src/network/PitchChannel.ts`, `src/ui/PitchDialog.ts` | unit, integration, e2e |
+| [F-043](#f-043-reward-panel)                        | Reward panel: contact info + CV PDF      | ✅     | 2        | `src/content/contact.ts`, `src/ui/rewardSection.ts`, `src/ui/PitchFlow.ts`                                | unit                   |
+| **Display**                                         |                                          |        |          |                                                                                                           |                        |
+| [F-050](#f-050-theme-switcher)                      | Theme switcher (button top-left)         | ✅     | —        | `src/config/themes.ts`, `src/game/ThemeCycle.ts`, `src/ui/ThemeButton.ts`                                 | unit, e2e              |
+| [F-051](#f-051-debug-mode)                          | Debug mode (clickable icon + overlay)    | 💡     | —        | —                                                                                                         | —                      |
+| [F-052](#f-052-chat-log)                            | Chat log (bottom-left)                   | ✅     | —        | `src/ui/ChatLog.ts`                                                                                       | unit, e2e              |
+| **Story & the dev**                                 |                                          |        |          |                                                                                                           |                        |
+| [F-060](#f-060-the-dev-wanders)                     | The dev wanders the map (server-run NPC) | ✅     | 1        | `server/rooms/DevWanderer.ts`, `src/network/RemoteDev.ts`, `src/game/entities/Dev.ts`                     | unit, integration, e2e |
+| [F-061](#f-061-the-dev-runs-away)                   | The dev runs away from recruiters        | ✅     | 2        | `server/rooms/flee.ts`, `server/rooms/DevWanderer.ts`                                                     | unit, integration      |
+| [F-062](#f-062-dev-speech-bubbles)                  | Dev speech bubbles                       | 💡     | 4        | —                                                                                                         | —                      |
+| [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | 💡     | 4        | —                                                                                                         | —                      |
+| **Minigames**                                       |                                          |        |          |                                                                                                           |                        |
+| [F-070](#f-070-minigame-framework)                  | Minigame framework                       | 📋     | 3        | —                                                                                                         | —                      |
+| [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | 📋     | 3        | —                                                                                                         | —                      |
+| [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | 💡     | 4        | —                                                                                                         | —                      |
+| [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | 4        | —                                                                                                         | —                      |
+| [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | 💡     | 4        | —                                                                                                         | —                      |
+| **Delivery & deployment**                           |                                          |        |          |                                                                                                           |                        |
+| [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | Delivery | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration      |
+| [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | ✅     | Delivery | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test          |
+| [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | —                      |
+| [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | 📋     | Delivery | —                                                                                                         | —                      |
+| [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | 💡     | Delivery | —                                                                                                         | —                      |
 
 ## Roadmap
 
@@ -72,7 +77,7 @@ playable on its own.
 | ---------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **0. Prerequisite** ✅ | shared client/server config (`shared/`)  | Map size, spawn, buildings, walkability and the dev's preferences defined once (fixed the F-001 and F-022 limits) |
 | **1. Foundations** ✅  | F-030 ✅, F-005 ✅, F-012 ✅, F-060 ✅   | Walk the CV map as a named recruiter, read sections, see the dev wander                                           |
-| **2. The chase**       | F-061 ✅, F-031 ✅, F-042 ✅, F-043      | Full loop: collect intel, chase, pitch, get the contact details                                                   |
+| **2. The chase** ✅    | F-061 ✅, F-031 ✅, F-042 ✅, F-043 ✅   | Full loop: collect intel, chase, pitch, get the contact details                                                   |
 | **3. Minigames**       | F-070, F-071                             | Intel earned by playing, starting with the Skills Park                                                            |
 | **4. Polish**          | F-041, F-062, F-063, F-072, F-073, F-074 | Achievements, personality, the remaining minigames                                                                |
 
@@ -115,7 +120,7 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ✅ Done
 
-- **What:** the CV buildings (currently EXPERIENCE and SKILLS) placed on the map.
+- **What:** the CV buildings (EXPERIENCE, SKILLS and EDUCATION) placed on the map.
 - **How it works:** `BUILDINGS` in `shared/buildings.ts` lists each building's title,
   grid position, footprint and colour. `MainScene.createBuildings` turns each entry into a
   `Building` through `BuildingFactory`, positions it, blocks its footprint in the collision
@@ -203,7 +208,7 @@ at any point, in ID order, and should land before the game is shared publicly.
 - **How it works:** `CollisionMap` stores blocked tiles as `"column:row"` keys.
   `GameMap.canWalkTo` refuses positions outside the map or on blocked tiles. Fractional
   positions are rounded to the nearest tile. Tiles are centred on whole numbers, so the map
-  spans -0.5 to 19.5 on each axis: `isInsideGrid` (`shared/world.ts`) is the one bounds
+  spans -0.5 to 23.5 on each axis: `isInsideGrid` (`shared/world.ts`) is the one bounds
   check, used by the client (`GameMap.isInside`) and the server (`isInsideMap`).
 - **Code:** `shared/CollisionMap.ts`, `shared/world.ts`, `src/game/Map.ts`
 - **Tests:** `tests/unit/shared/CollisionMap.test.ts`, `tests/unit/game/Map.test.ts`,
@@ -467,34 +472,35 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ### F-043 Reward panel
 
-🚧 Partial: LinkedIn only, waiting for the CV PDF (and an email, if the owner wants one)
+✅ Done
 
 - **What:** after a good pitch, the "You got me!" dialog also shows how to reach the dev for
-  real: his LinkedIn, with a copy button. An email and a "Download my CV (PDF)" link show up
-  as soon as they're added to `CONTACT`.
+  real: his LinkedIn and email, each with a copy button, and a "Download my CV (PDF)" link.
 - **Design:** GAME_DESIGN.md › "Rewards".
 - **How it works:**
   - `CONTACT` (`src/content/contact.ts`, typed by `src/domain/Contact.ts`) holds only what
-    the owner chose to share: `linkedin` today; `email` and `cvPdf` (a path in `public/`)
-    are optional.
+    the owner chose to share: `linkedin`, `email` and `cvPdf` (`/CV_POIGNANT_BENJAMIN.pdf`, served from
+    `public/` by Vite in dev and by the server from `dist/` in production). Each is
+    optional and its row disappears when unset.
   - `renderReward` (`src/ui/rewardSection.ts`) builds the section with `textContent` only:
     one row per detail (link + Copy button, which says "Copied!" or "Copy failed"; the
     clipboard needs HTTPS or localhost), then the PDF link if there is one. LinkedIn opens
     in a new tab with `noopener noreferrer`.
   - `PitchFlow` (`src/ui/`) passes it to `PitchDialog.showResult` for a good pitch only.
 - **Code:** `src/domain/Contact.ts`, `src/content/contact.ts`, `src/ui/rewardSection.ts`,
-  `src/ui/PitchFlow.ts`, `src/ui/PitchDialog.ts`, `src/style.css`
-- **Tests:** `tests/unit/ui/rewardSection.test.ts` (owner's LinkedIn, optional details, copy,
-  no clipboard), `tests/unit/ui/PitchFlow.test.ts` (good pitch only),
-  `tests/unit/ui/PitchDialog.test.ts` (extra content)
-- **To do:**
-  - The CV PDF (needs the owner) in `public/`, and `cvPdf` in `CONTACT`. Check the download
-    from the production build (`npm start`), not only the dev server.
-  - The "Hired the dev" achievement (F-041).
-  - An e2e test of the full loop. The chest can only be clicked on the canvas, so this
-    needs a way to reach it with the keyboard first.
-- **Limits:** the contact details ship in the client bundle, so they aren't secret. That's
-  fine for a LinkedIn profile, which is public anyway.
+  `src/ui/PitchFlow.ts`, `src/ui/PitchDialog.ts`, `src/style.css`, `public/CV_POIGNANT_BENJAMIN.pdf`
+- **Tests:** `tests/unit/ui/rewardSection.test.ts` (owner's LinkedIn and email, the PDF link
+  and that the file exists in `public/`, optional details, copy, no clipboard),
+  `tests/unit/ui/PitchFlow.test.ts` (good pitch only), `tests/unit/ui/PitchDialog.test.ts`
+  (extra content). The production server was checked by hand to serve `/CV_POIGNANT_BENJAMIN.pdf`.
+- **Limits:**
+  - The contact details ship in the client bundle and the repo is public, so they aren't
+    secret: anyone (and spam bots) can read the email. The PDF itself also contains it.
+  - No e2e test of the full loop: the chest can only be clicked on the canvas, so it needs a
+    way to reach it with the keyboard first (F-040).
+  - The "Hired the dev" achievement is part of F-041.
+  - `public/CV_POIGNANT_BENJAMIN.pdf` is a LinkedIn export, separate from `src/content/cv.ts`: update both
+    when the CV changes.
 
 ## Display
 
@@ -735,8 +741,7 @@ provider lock-in.
 
 ### F-081 Docker image
 
-🚧 In progress: written, not built yet (Docker isn't installed on the dev machine). The first CI
-run (F-082) is its first real test.
+✅ Done: built and smoke-tested by CI since the first push (run 38170704603).
 
 - **What:** a `Dockerfile` that builds one small image running the whole game, plus a
   `compose.yaml` to run it locally with `docker compose up --build`.
@@ -748,13 +753,13 @@ run (F-082) is its first real test.
   and `.claude` out of the build context.
 - **Code:** `Dockerfile`, `.dockerignore`, `compose.yaml`
 - **Tests:** the CI `docker` job (F-082).
-- **To do:** see the image build and pass once in CI, then mark ✅. `pixi.js` and
+- **Limits:** `pixi.js` and
   `@colyseus/sdk` are runtime `dependencies` but only the client bundle needs them, so the
   runtime image installs them for nothing (moving them to `devDependencies` would shrink it).
 
 ### F-082 CI builds and smoke-tests the image
 
-🚧 In progress: written, not run yet (the repo has no commits or remote).
+✅ Done: green on GitHub since the first push.
 
 - **What:** every push and PR proves the production build works, not only the tests.
 - **How it works:** the `check` job in `.github/workflows/ci.yml` now also runs
@@ -762,7 +767,7 @@ run (F-082) is its first real test.
   GitHub Actions layer cache, starts it, polls `/health` for up to 30 s, checks that `/`
   serves the game's `index.html`, and prints the container logs on failure.
 - **Code:** `.github/workflows/ci.yml`
-- **To do:** see it pass once on GitHub, then mark ✅. Optionally run the Playwright
+- **Next:** optionally run the Playwright
   journeys against the container instead of the dev servers.
 
 ### F-083 Publish the image on release
