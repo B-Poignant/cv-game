@@ -1,0 +1,543 @@
+/* The canvas fills the window: no default page margin, no scrollbars. */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+canvas {
+  /* Inline canvases leave a gap under the baseline that causes a vertical scrollbar. */
+  display: block;
+}
+
+.theme-button {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  padding: 6px 12px;
+  font: 14px/1.2 monospace;
+  color: #fff;
+  background: rgb(17 24 39 / 80%);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.theme-button:hover {
+  background: rgb(17 24 39 / 95%);
+}
+
+.theme-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* CV panel (F-030) */
+.cv-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 45%);
+}
+
+/* `display: grid` above would otherwise override the hidden attribute. */
+.cv-backdrop[hidden] {
+  display: none;
+}
+
+.cv-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100%);
+  /* Viewport units only: a % here has no definite height to resolve against. */
+  max-height: min(80vh, calc(100vh - 32px));
+  color: #e5e7eb;
+  background: #111827;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgb(0 0 0 / 40%);
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+
+.cv-panel:focus {
+  outline: none;
+}
+
+.cv-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.cv-panel__title {
+  margin: 0;
+  font: 600 18px/1.2 monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cv-panel__close {
+  padding: 4px 10px;
+  font-size: 16px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cv-panel__close:hover,
+.cv-panel__close:focus-visible {
+  background: rgb(255 255 255 / 10%);
+}
+
+.cv-panel__content {
+  /* Lets the content shrink below its natural height so it scrolls inside the panel. */
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 18px 18px;
+}
+
+.cv-panel__content h2 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cv-panel__content p {
+  margin: 4px 0;
+}
+
+.cv-entry {
+  padding: 10px 0;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+
+.cv-entry__title {
+  margin: 0;
+  font-size: 15px;
+  color: #fff;
+}
+
+.cv-entry__meta {
+  font-weight: 600;
+}
+
+.cv-entry__period,
+.cv-entry__location {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.cv-entry__highlights {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+
+.cv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cv-tags li {
+  padding: 2px 8px;
+  font-size: 12px;
+  background: rgb(124 58 237 / 30%);
+  border-radius: 999px;
+}
+
+.cv-skills__list,
+.cv-languages__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cv-skill {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.cv-level {
+  color: #fbbf24;
+  letter-spacing: 0.15em;
+}
+
+/* Arrival panel (F-012): reuses .cv-backdrop and .cv-panel. */
+.identity-panel {
+  width: min(420px, 100%);
+  gap: 12px;
+  padding: 18px;
+}
+
+.identity-panel__intro {
+  margin: 0;
+  color: #9ca3af;
+}
+
+.identity-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.identity-panel__field input {
+  padding: 8px 10px;
+  font: 15px/1.2 monospace;
+  color: #fff;
+  background: #1f2937;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 6px;
+}
+
+.identity-panel__field input:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 1px;
+}
+
+.identity-panel__error {
+  margin: 0;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+/* Has no `display` of its own, but keep the rule so styling it later can't unhide it. */
+.identity-panel__error[hidden] {
+  display: none;
+}
+
+.identity-panel__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.identity-panel__reroll,
+.identity-panel__start {
+  padding: 8px 14px;
+  font: 600 14px/1.2 monospace;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.identity-panel__reroll {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 25%);
+}
+
+.identity-panel__start {
+  background: #7c3aed;
+  border: 1px solid #7c3aed;
+}
+
+.identity-panel__reroll:hover,
+.identity-panel__reroll:focus-visible {
+  background: rgb(255 255 255 / 10%);
+}
+
+.identity-panel__start:hover,
+.identity-panel__start:focus-visible {
+  background: #6d28d9;
+}
+
+/* Intel cards (F-031): under the dialogs' backdrop (20), which would otherwise be covered on phones. */
+.intel-inventory {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 15;
+  width: min(280px, calc(100vw - 24px));
+  padding: 8px 12px;
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
+  color: #fff;
+  background: rgb(17 24 39 / 85%);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.intel-inventory__title {
+  margin: 0;
+  font: bold 14px/1.2 monospace;
+}
+
+.intel-inventory__cards {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intel-inventory__card {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  background: rgb(255 255 255 / 10%);
+  border-left: 3px solid #facc15;
+  border-radius: 4px;
+}
+
+.intel-inventory__empty {
+  margin: 6px 0 0;
+  color: rgb(255 255 255 / 80%);
+}
+
+.intel-inventory__empty[hidden] {
+  display: none;
+}
+
+.intel-inventory__cards:empty {
+  display: none;
+}
+
+/* Narrow screens: below the theme button instead of over it. */
+@media (max-width: 440px) {
+  .intel-inventory {
+    top: 52px;
+  }
+}
+
+/* Chat log (F-052): bottom-left, under the dialogs' backdrop (20). */
+.chat-log {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  z-index: 15;
+  width: min(340px, calc(100vw - 24px));
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
+  color: #fff;
+  background: rgb(17 24 39 / 85%);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 6px;
+}
+
+.chat-log[hidden] {
+  display: none;
+}
+
+.chat-log__messages {
+  max-height: 9.5em;
+  margin: 0;
+  padding: 6px 10px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.chat-log__message strong {
+  color: #facc15;
+}
+
+.chat-log__message--notice {
+  color: rgb(255 255 255 / 80%);
+  font-style: italic;
+}
+
+/* Pitch dialog (F-042) */
+.pitch-dialog {
+  width: min(560px, 100%);
+}
+
+.pitch-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.pitch-dialog__offer,
+.pitch-dialog__result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Lets the content shrink below its natural height so it scrolls inside the panel. */
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 18px 18px;
+}
+
+/* `display: flex` above would otherwise override the hidden attribute. */
+.pitch-dialog__offer[hidden],
+.pitch-dialog__result[hidden],
+.pitch-dialog__error[hidden] {
+  display: none;
+}
+
+.pitch-dialog__intro,
+.pitch-dialog__error {
+  margin: 0;
+}
+
+.pitch-dialog__intro {
+  color: #9ca3af;
+}
+
+.pitch-dialog__error {
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+.pitch-dialog__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.pitch-dialog__group legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 13px;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pitch-dialog__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.pitch-dialog__option:has(input:checked) {
+  background: rgb(124 58 237 / 35%);
+  border-color: #a78bfa;
+}
+
+.pitch-dialog__option:has(input:focus-visible) {
+  outline: 2px solid #a78bfa;
+  outline-offset: 1px;
+}
+
+.pitch-dialog__option input {
+  margin: 0;
+  accent-color: #a78bfa;
+}
+
+.pitch-dialog__replies {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 16px;
+}
+
+.pitch-dialog__button {
+  align-self: flex-end;
+  padding: 8px 14px;
+  font: 600 14px/1.2 monospace;
+  color: #fff;
+  background: #7c3aed;
+  border: 1px solid #7c3aed;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pitch-dialog__button:hover,
+.pitch-dialog__button:focus-visible {
+  background: #6d28d9;
+}
+
+.pitch-dialog__button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* Reward after a good pitch (F-043) */
+.reward {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  background: rgb(250 204 21 / 10%);
+  border: 1px solid rgb(250 204 21 / 40%);
+  border-radius: 8px;
+}
+
+.reward__intro {
+  margin: 0;
+  font-weight: 600;
+}
+
+.reward__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reward__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.reward__label {
+  min-width: 70px;
+  color: #9ca3af;
+}
+
+.reward a {
+  color: #c4b5fd;
+  overflow-wrap: anywhere;
+}
+
+.reward__copy {
+  margin-left: auto;
+  padding: 3px 10px;
+  font: 13px/1.2 monospace;
+  color: inherit;
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.reward__copy:hover,
+.reward__copy:focus-visible {
+  background: rgb(255 255 255 / 10%);
+}
+
+.reward__download {
+  justify-self: start;
+  font-weight: 600;
+}
+
+.pitch-dialog__extra:empty {
+  display: none;
+}

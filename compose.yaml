@@ -1,0 +1,10 @@
+# Run the production image locally: docker compose up --build (F-081).
+services:
+  cv-game:
+    build: .
+    image: cv-game:local
+    ports:
+      - "2567:2567"
+    environment:
+      PORT: 2567
+    restart: unless-stopped

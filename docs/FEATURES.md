@@ -1,0 +1,807 @@
+# Features
+
+Every feature of cv-game, current and planned, and how each one works.
+
+**Legend:** ✅ Done · 🚧 Partial / in progress · 📋 Planned · 💡 Idea
+
+**Rules**
+
+- IDs are grouped by area (`F-00x` world, `F-01x` player, `F-02x` multiplayer, `F-03x` CV
+  content, `F-04x` interactions, `F-05x` display, `F-06x` story & the dev, `F-07x` minigames, `F-08x` delivery & deployment). **Never reuse an ID.** Take the next free number in the area.
+- A feature is ✅ only when its code **and** tests exist. Write "none (gap)" when tests are missing.
+- Removed features move to [Removed](#removed) and keep their ID.
+- Planned features follow the story in [GAME_DESIGN.md](GAME_DESIGN.md) ("Headhunted").
+- Keep this file in sync with the `update-docs` skill. To start a feature, use the
+  `new-feature` skill.
+
+## Summary
+
+| ID                                                  | Feature                                  | Status | Code                                                                                                      | Tests                       |
+| --------------------------------------------------- | ---------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **World**                                           |                                          |        |                                                                                                           |                             |
+| [F-001](#f-001-isometric-tile-map)                  | Isometric 24×24 tile map                 | ✅     | `src/game/Map.ts`, `src/game/IsometricConverter.ts`                                                       | unit                        |
+| [F-002](#f-002-camera-fit-and-resize)               | Camera fits the map, refits on resize    | ✅     | `src/game/Camera.ts`                                                                                      | unit, e2e                   |
+| [F-003](#f-003-buildings-defined-in-config)         | Buildings defined in config              | ✅     | `shared/buildings.ts`, `src/game/factories/`, `src/game/entities/Building.ts`                             | unit                        |
+| [F-004](#f-004-depth-sorting)                       | Depth sorting                            | ✅     | `src/scenes/MainScene.ts`                                                                                 | unit                        |
+| [F-005](#f-005-map-as-cv)                           | Map as CV: districts per section         | ✅     | `shared/districts.ts`, `src/game/entities/DistrictGround.ts`                                              | unit, integration, e2e      |
+| **Player**                                          |                                          |        |                                                                                                           |                             |
+| [F-010](#f-010-keyboard-movement)                   | Keyboard movement (arrows / ZQSD / WASD) | ✅     | `src/game/Player.ts`                                                                                      | unit                        |
+| [F-011](#f-011-collisions)                          | Collisions with buildings and map edges  | ✅     | `shared/CollisionMap.ts`, `src/game/Map.ts`                                                               | unit                        |
+| [F-012](#f-012-recruiter-identity)                  | Recruiter identity (name + company)      | ✅     | `shared/recruiters.ts`, `src/ui/IdentityPanel.ts`, `src/game/entities/NameTag.ts`                         | unit, integration, e2e      |
+| **Multiplayer**                                     |                                          |        |                                                                                                           |                             |
+| [F-020](#f-020-join-a-shared-room)                  | Join a shared room                       | ✅     | `src/network/MultiplayerClient.ts`, `server/rooms/CvRoom.ts`                                              | integration, e2e            |
+| [F-021](#f-021-see-other-visitors-move)             | See other visitors move live             | ✅     | `src/network/RemotePlayersManager.ts`, `src/network/RemotePlayer.ts`                                      | unit, integration, e2e      |
+| [F-022](#f-022-server-side-move-validation)         | Server checks every move                 | ✅     | `server/rooms/CvRoom.ts`                                                                                  | integration                 |
+| [F-023](#f-023-single-player-fallback)              | Single-player when the server is down    | ✅     | `src/scenes/MainScene.ts`                                                                                 | unit                        |
+| **CV content**                                      |                                          |        |                                                                                                           |                             |
+| [F-030](#f-030-cv-content-and-section-panels)       | CV content + section panels              | ✅     | `src/content/`, `src/ui/CvPanel.ts`, `src/ui/cvSections.ts`                                               | unit, e2e                   |
+| [F-031](#f-031-intel-cards)                         | Intel cards                              | ✅     | `shared/intel.ts`, `src/content/intel.ts`, `src/ui/IntelInventory.ts`, `src/network/LocalIntel.ts`        | unit, integration, e2e      |
+| **Interactions**                                    |                                          |        |                                                                                                           |                             |
+| [F-040](#f-040-clickable-chest)                     | Clickable chest on the map               | 🚧     | `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`                                | unit, integration           |
+| [F-041](#f-041-achievements)                        | Achievements                             | 📋     | —                                                                                                         | —                           |
+| [F-042](#f-042-catch-and-pitch)                     | Catch + pitch dialog                     | ✅     | `shared/pitch.ts`, `server/rooms/PitchTracker.ts`, `src/network/PitchChannel.ts`, `src/ui/PitchDialog.ts` | unit, integration, e2e      |
+| [F-043](#f-043-reward-panel)                        | Reward panel: contact info + CV PDF      | 🚧     | `src/content/contact.ts`, `src/ui/rewardSection.ts`, `src/ui/PitchFlow.ts`                                | unit                        |
+| **Display**                                         |                                          |        |                                                                                                           |                             |
+| [F-050](#f-050-theme-switcher)                      | Theme switcher (button top-left)         | ✅     | `src/config/themes.ts`, `src/game/ThemeCycle.ts`, `src/ui/ThemeButton.ts`                                 | unit, e2e                   |
+| [F-051](#f-051-debug-mode)                          | Debug mode (clickable icon + overlay)    | 💡     | —                                                                                                         | —                           |
+| [F-052](#f-052-chat-log)                            | Chat log (bottom-left)                   | ✅     | `src/ui/ChatLog.ts`                                                                                       | unit, e2e                   |
+| **Story & the dev**                                 |                                          |        |                                                                                                           |                             |
+| [F-060](#f-060-the-dev-wanders)                     | The dev wanders the map (server-run NPC) | ✅     | `server/rooms/DevWanderer.ts`, `src/network/RemoteDev.ts`, `src/game/entities/Dev.ts`                     | unit, integration, e2e      |
+| [F-061](#f-061-the-dev-runs-away)                   | The dev runs away from recruiters        | ✅     | `server/rooms/flee.ts`, `server/rooms/DevWanderer.ts`                                                     | unit, integration           |
+| [F-062](#f-062-dev-speech-bubbles)                  | Dev speech bubbles                       | 💡     | —                                                                                                         | —                           |
+| [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | 💡     | —                                                                                                         | —                           |
+| **Minigames**                                       |                                          |        |                                                                                                           |                             |
+| [F-070](#f-070-minigame-framework)                  | Minigame framework                       | 📋     | —                                                                                                         | —                           |
+| [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | 📋     | —                                                                                                         | —                           |
+| [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | 💡     | —                                                                                                         | —                           |
+| [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | —                                                                                                         | —                           |
+| [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | 💡     | —                                                                                                         | —                           |
+| **Delivery & deployment**                           |                                          |        |                                                                                                           |                             |
+| [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration           |
+| [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | 🚧     | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test (not run yet) |
+| [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | 🚧     | `.github/workflows/ci.yml`                                                                                | —                           |
+| [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | 📋     | —                                                                                                         | —                           |
+| [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | 💡     | —                                                                                                         | —                           |
+
+## Roadmap
+
+The order to build the "Headhunted" story ([GAME_DESIGN.md](GAME_DESIGN.md)). Each phase is
+playable on its own.
+
+| Phase                  | Features                                 | Playable result                                                                                                   |
+| ---------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **0. Prerequisite** ✅ | shared client/server config (`shared/`)  | Map size, spawn, buildings, walkability and the dev's preferences defined once (fixed the F-001 and F-022 limits) |
+| **1. Foundations** ✅  | F-030 ✅, F-005 ✅, F-012 ✅, F-060 ✅   | Walk the CV map as a named recruiter, read sections, see the dev wander                                           |
+| **2. The chase**       | F-061 ✅, F-031 ✅, F-042 ✅, F-043      | Full loop: collect intel, chase, pitch, get the contact details                                                   |
+| **3. Minigames**       | F-070, F-071                             | Intel earned by playing, starting with the Skills Park                                                            |
+| **4. Polish**          | F-041, F-062, F-063, F-072, F-073, F-074 | Achievements, personality, the remaining minigames                                                                |
+
+Delivery & deployment (F-080 → F-084) is a separate track outside the story. It can be built
+at any point, in ID order, and should land before the game is shared publicly.
+
+---
+
+## World
+
+### F-001 Isometric tile map
+
+✅ Done
+
+- **What:** a 24×24 grid of diamond-shaped grass tiles, the ground of the world, split into
+  districts (F-005).
+- **How it works:** `GameMap` draws one `Graphics` diamond per cell. Every grid
+  position `{ column, row }` becomes screen pixels through `IsometricConverter.toScreen`
+  (`x = (column - row) × tileWidth/2`, `y = (column + row) × tileHeight/2`) with 64×32 tiles.
+  `isInside` checks bounds.
+- **Code:** `src/game/Map.ts`, `src/game/IsometricConverter.ts`, `shared/grid.ts`
+  (tile colours come from the current theme, see F-050)
+- **Tests:** `tests/unit/game/Map.test.ts`, `tests/unit/game/IsometricConverter.test.ts`
+- **Shared:** the map size (`MAP_SIZE`) and the walkability rule come from `shared/world.ts`,
+  so the client and the server always agree (a test checks every tile).
+
+### F-002 Camera fit and resize
+
+✅ Done
+
+- **What:** the whole map is always visible and centred, whatever the window size.
+- **How it works:** `Camera.fitMap` computes a zoom that fits the map bounds inside the
+  viewport with 40px padding (never above 100%), then centres the world container.
+  `MainScene` calls `camera.resize()` on window `resize`.
+- **Code:** `src/game/Camera.ts`, `src/scenes/MainScene.ts` (`getMapBounds`, `handleResize`)
+- **Tests:** `tests/unit/game/Camera.test.ts`; e2e "fills the window when it is resized"
+- **Limits:** there's no scrolling or follow-camera. Large maps would become tiny.
+
+### F-003 Buildings defined in config
+
+✅ Done
+
+- **What:** the CV buildings (currently EXPERIENCE and SKILLS) placed on the map.
+- **How it works:** `BUILDINGS` in `shared/buildings.ts` lists each building's title,
+  grid position, footprint and colour. `MainScene.createBuildings` turns each entry into a
+  `Building` through `BuildingFactory`, positions it, blocks its footprint in the collision
+  map, and makes it clickable.
+- **Code:** `shared/buildings.ts`, `src/game/factories/BuildingFactory.ts`,
+  `src/game/entities/Building.ts`, `src/scenes/MainScene.ts`
+- **Tests:** `tests/unit/shared/buildings.test.ts` (inside the map, no overlap, spawn point
+  free, unique titles), `tests/unit/game/entities/Building.test.ts`,
+  `tests/unit/game/factories/BuildingFactory.test.ts`
+- **Shared:** the layout lives in `shared/buildings.ts`, so the server blocks the same
+  footprints (F-022). Opening a building shows its CV section (F-030).
+
+### F-004 Depth sorting
+
+✅ Done
+
+- **What:** objects lower on screen are drawn in front, so the player walks behind and in
+  front of buildings correctly.
+- **How it works:** each frame, `MainScene.updateDepth` sets every world child's `zIndex` to
+  its `y` and sorts.
+- **Code:** `src/scenes/MainScene.ts`
+- **Tests:** `tests/unit/scenes/MainScene.test.ts` ("draws objects lower on screen in front")
+
+### F-005 Map as CV
+
+✅ Done (phase 1): three districts; the Projects Lab waits for projects in the CV
+
+- **What:** the 24×24 map is split into quarters, one district per CV section, each around
+  its building: **Skills Park** (top-left, SKILLS), **Experience Avenue** (top-right,
+  EXPERIENCE) and **Education Campus** (bottom-left, EDUCATION: "Formation et langues").
+  Each district's name is painted on the ground, and thin lines mark the borders. Recruiters
+  spawn at the crossroads (12, 12). The bottom-right quarter has no district yet: Ben
+  spawns there (18, 18), and the chest hides in its corner (21, 21).
+- **Design:** GAME_DESIGN.md › "The map is the CV".
+- **How it works:**
+  - `DISTRICTS` (`shared/districts.ts`) holds each district's name, CV section and area
+    (top corner + size, half the map each way). `districtAt` finds the district under a
+    position (rounded to its tile), `districtCorners` gives the outline along the tile edges
+    and `districtLabelPosition` the tile where the name is painted (centred, near the far edge).
+  - `DistrictGround` (`src/game/entities/`) draws the outline and the name (capitals, along
+    the column axis so it lies on the ground), both in the theme's `label` colour, which
+    already keeps a 4.5:1 contrast with the tiles (F-050). `MainScene.createDistricts` adds
+    them to the map itself, so depth sorting never puts them over characters, and
+    `applyTheme` recolours them.
+  - The EDUCATION building opens a new `education` section (`CvSectionId`): education and
+    languages, moved out of the EXPERIENCE and SKILLS panels. It gives no intel card.
+- **Code:** `shared/districts.ts`, `shared/buildings.ts`, `shared/world.ts`,
+  `src/game/entities/DistrictGround.ts`, `src/scenes/MainScene.ts`, `src/ui/cvSections.ts`
+- **Tests:** `tests/unit/shared/districts.test.ts` (one district per building section, each
+  building in its own district, inside the map, no overlap, spawns outside the districts,
+  labels on walkable tiles), `tests/unit/game/entities/DistrictGround.test.ts`,
+  `tests/unit/scenes/MainScene.test.ts` (districts on the map, recoloured),
+  `tests/unit/ui/cvSections.test.ts` (education section); integration
+  `tests/integration/server/CvRoom.test.ts` (no card from EDUCATION); e2e
+  `tests/e2e/cv-panels.spec.ts` (EDUCATION panel)
+- **Limits:**
+  - No Projects Lab: `projects` is empty in the CV. Once the owner adds projects to
+    `src/content/cv.ts`, it needs a district and a building in the empty quarter.
+  - Districts are only painted: entering one does nothing (no "Welcome to Skills Park").
+  - On small screens the camera zooms out, so the ground names get small.
+
+## Player
+
+### F-010 Keyboard movement
+
+✅ Done
+
+- **What:** smooth movement with the arrows, ZQSD (AZERTY) or WASD (QWERTY).
+- **How it works:** `Player` tracks pressed keys from `window` keydown/keyup (removed again
+  in `destroy()`). Each frame, `Game` passes the ticker's frame time down to
+  `update(deltaSeconds)`, which turns the keys into a direction, normalises diagonals, and
+  moves `PLAYER_SPEED` (3 tiles/s, `shared/world.ts`) × frame time, at any frame rate. A
+  frame counts for at most 0.1 s, so after a pause the player steps at most 0.3 tiles.
+  Each successful move calls `onMove`, which `MainScene` sends to the server.
+- **Code:** `src/game/Player.ts`
+- **Tests:** `tests/unit/game/Player.test.ts` (keys, collisions, 30/60/144 fps, long frames,
+  listener cleanup)
+- **Limits:** there are no touch controls. The spawn point is `PLAYER_SPAWN` in `shared/world.ts`.
+
+### F-011 Collisions
+
+✅ Done
+
+- **What:** the player can't walk off the map or through buildings.
+- **How it works:** `CollisionMap` stores blocked tiles as `"column:row"` keys.
+  `GameMap.canWalkTo` refuses positions outside the map or on blocked tiles. Fractional
+  positions are rounded to the nearest tile. Tiles are centred on whole numbers, so the map
+  spans -0.5 to 19.5 on each axis: `isInsideGrid` (`shared/world.ts`) is the one bounds
+  check, used by the client (`GameMap.isInside`) and the server (`isInsideMap`).
+- **Code:** `shared/CollisionMap.ts`, `shared/world.ts`, `src/game/Map.ts`
+- **Tests:** `tests/unit/shared/CollisionMap.test.ts`, `tests/unit/game/Map.test.ts`,
+  `tests/unit/game/Player.test.ts`
+
+### F-012 Recruiter identity
+
+✅ Done
+
+- **What:** on arrival, a panel asks "Who are you today?", prefilled with a random recruiter
+  from a list of pop-culture references ("Homer from Springfield Nuclear", "Randy from Tegridy
+  Farms"…). 🎲 picks another, and Start enters the game. Every recruiter's name and company
+  show above their character, for them and for everyone else.
+- **Design:** GAME_DESIGN.md › "Characters".
+- **How it works:**
+  - `shared/recruiters.ts` holds the defaults (`DEFAULT_RECRUITERS`, 19 entries validated by
+    the CV owner), `randomRecruiter` and `normalizeIdentity`: trim, collapse spaces, then
+    accept 1–20 characters for the name and 1–24 for the company, using only letters (with
+    accents), digits, spaces and `. , ' ’ & ! ? ( ) -`.
+  - `Game` pauses the scene and opens `IdentityPanel` (`src/ui/IdentityPanel.ts`, an HTML
+    form styled like the CV panel). `choose()` resolves once the typed identity passes
+    `normalizeIdentity`; otherwise an error stays under the fields.
+  - `MainScene.join(identity)` shows a `NameTag` (name, company underneath, in the theme's
+    `label` colour) above the local `Player` and joins the room with the identity as join
+    options. Before that, nobody is connected.
+  - `CvRoom.onJoin` runs `normalizeIdentity` on the options again and stores `name` and
+    `company` in `PlayerState`. Anything invalid or missing gets a random default instead.
+  - `RemotePlayersManager` gives each `RemotePlayer` a `NameTag` and passes theme changes on,
+    also to visitors who join later.
+- **Code:** `shared/recruiters.ts`, `server/rooms/CvRoom.ts`, `server/rooms/CvRoomState.ts`,
+  `src/ui/IdentityPanel.ts`, `src/style.css`, `src/game/entities/NameTag.ts`,
+  `src/game/Player.ts`, `src/network/RemotePlayer.ts`, `src/network/RemotePlayersManager.ts`,
+  `src/network/MultiplayerClient.ts`, `src/scenes/MainScene.ts`, `src/game/Game.ts`
+- **Tests:** `tests/unit/shared/recruiters.test.ts` (every default is valid, cleaning,
+  rejections), `tests/unit/ui/IdentityPanel.test.ts`, `tests/unit/game/entities/NameTag.test.ts`,
+  `tests/unit/game/Player.test.ts` ("identity"), `tests/unit/network/RemotePlayer.test.ts`,
+  `tests/unit/scenes/MainScene.test.ts` (no join before an identity); integration
+  `tests/integration/server/CvRoom.test.ts` (cleaned identity, random default for each kind of
+  bad input), `tests/integration/network/MultiplayerClient.test.ts`,
+  `tests/integration/network/RemotePlayersManager.test.ts`; e2e `tests/e2e/identity.spec.ts`
+- **Limits:**
+  - Everyone spawns on the same tile, so name tags overlap until visitors move apart.
+  - Tags are small (10 and 9 px, scaled down with the camera), like building titles.
+  - Two visitors can pick the same name. The identity isn't remembered between visits.
+
+## Multiplayer
+
+### F-020 Join a shared room
+
+✅ Done
+
+- **What:** every visitor joins the same Colyseus room on load.
+- **How it works:** `MultiplayerClient.connect` calls `joinOrCreate("cv")` on the server
+  chosen by `serverEndpoint` (F-080): `http://localhost:2567` in dev, the page's origin in production. On join, `CvRoom.onJoin` adds a `PlayerState` (name, column, row)
+  at the crossroads (12, 12) to the synced state. On leave, the player is removed. At most 10 clients.
+- **Code:** `src/network/MultiplayerClient.ts`, `server/rooms/CvRoom.ts`,
+  `server/rooms/CvRoomState.ts`
+- **Tests:** `tests/integration/network/MultiplayerClient.test.ts`,
+  `tests/integration/server/CvRoom.test.ts`; e2e "loads the game without errors"
+
+### F-021 See other visitors move
+
+✅ Done
+
+- **What:** other visitors appear as characters and move in real time.
+- **How it works:** `RemotePlayersManager` listens to `players` add/change/remove callbacks
+  on the room state. It creates a `RemotePlayer` per other session (ignoring the local
+  one) and updates its grid position on change.
+- **Code:** `src/network/RemotePlayersManager.ts`, `src/network/RemotePlayer.ts`
+- **Tests:** `tests/integration/network/RemotePlayersManager.test.ts` (real server: join, move, leave, already-present visitors), `tests/unit/network/RemotePlayer.test.ts`; e2e "two visitors see each other move"
+- **Limits:** visitors jump between positions (no smoothing). Name tags come from F-012.
+
+### F-022 Server-side move validation
+
+✅ Done
+
+- **What:** the server has the final say, so a modified client can't teleport or leave the map.
+- **How it works:** `CvRoom.handleMove` ignores a `move` message unless both coordinates
+  are finite numbers on a walkable tile (inside the 24×24 map and not inside a building, rounded
+  to the nearest tile) and the client still has enough movement budget. Each client has a
+  `MoveBudget` (a token bucket): it holds at most 1 tile, so one move can't jump further, and
+  refills at `PLAYER_SPEED` × 1.25 tiles/s, so sending more messages can't make a player move
+  faster. The 25% margin absorbs uneven frame and network timing.
+- **Code:** `server/rooms/CvRoom.ts`, `server/rooms/MoveBudget.ts`
+- **Tests:** `tests/integration/server/CvRoom.test.ts` (valid moves, jumps, bursts of moves,
+  bounds, buildings, malformed payloads), `tests/unit/server/rooms/MoveBudget.test.ts`,
+  `tests/unit/shared/world.test.ts`
+- **Shared rules:** the bounds and the building footprints come from `shared/world.ts`
+  (`isWalkable`), the same rule the client uses.
+
+### F-023 Single-player fallback
+
+✅ Done
+
+- **What:** the game stays playable when the multiplayer server is down.
+- **How it works:** `MainScene.initializeMultiplayer` catches connection errors and logs
+  them. `sendPlayerPosition` does nothing while disconnected.
+- **Code:** `src/scenes/MainScene.ts`
+- **Tests:** `tests/unit/scenes/MainScene.test.ts` ("stays playable when the server is unreachable", network faked)
+
+## CV content
+
+### F-030 CV content and section panels
+
+✅ Done (phase 1)
+
+- **What:** the real CV, in French, shown in a panel when a visitor opens a building:
+  - **EXPERIENCE** → profile, then the 8 experiences (company, contract, work mode, period
+    with a LinkedIn-style duration, location, missions, technologies)
+  - **SKILLS** → skills grouped by category with a level out of 5
+  - **EDUCATION** → education, then languages (F-005)
+- **How it works:**
+  - Content: `CV` in `src/content/cv.ts`, typed by `Cv` (`src/domain/Cv.ts`). Skill levels
+    were derived from years of use, for the owner to review.
+  - Each building's `section` in `shared/buildings.ts` says which part it opens.
+  - A click or tap on a building (`pointertap`) calls `MainScene`'s `onBuildingSelected`.
+    `Game` passes that to `CvPanel.open`, and pauses `MainScene` while the panel is open.
+  - `CvPanel` is an HTML modal dialog (styled in `src/style.css`) that closes with ✕, Escape or
+    a click on the backdrop. `renderSection` (`src/ui/cvSections.ts`) builds the content with
+    `textContent` only, never `innerHTML`. Dates and durations come from `src/content/format.ts`.
+  - Keyboard: buildings are accessible Pixi objects, so Tab puts a real "Open <TITLE>" button
+    over each one, and Enter opens it.
+- **Code:** `src/content/cv.ts`, `src/content/format.ts`, `src/domain/`, `src/ui/CvPanel.ts`,
+  `src/ui/cvSections.ts`, `shared/buildings.ts`, `src/scenes/MainScene.ts`,
+  `src/game/Game.ts`, `src/style.css`
+- **Tests:** `tests/unit/content/cv.test.ts`, `tests/unit/content/format.test.ts` (durations
+  match LinkedIn), `tests/unit/ui/cvSections.test.ts`, `tests/unit/ui/CvPanel.test.ts`,
+  `tests/unit/scenes/MainScene.test.ts` (building tap, pause), `tests/unit/shared/buildings.test.ts`;
+  e2e `tests/e2e/cv-panels.spec.ts` (keyboard, mouse, closing, fits the window, scrolling)
+- **Limits:**
+  - **Projects:** none listed yet.
+  - The skill level dots (● and ○) render at slightly different sizes in some fonts.
+  - In the story, panels will open after a building's minigame (F-070); for now a click opens them.
+
+### F-031 Intel cards
+
+✅ Done (phase 2), with interim sources until the minigames exist (F-070)
+
+- **What:** facts about the dev, in French, that recruiters collect before pitching (F-042
+  needs 3). For now, opening a building **up close** (2 tiles at most) gives its card, and
+  the hidden chest gives a secret one. An inventory in the top-right corner lists them
+  ("Intel 1/3"); each new card is announced in the chat log (F-052).
+- **The cards** (validated by the CV owner):
+  - SKILLS → **Stack principale**: PHP (Symfony, Laravel) et JavaScript / TypeScript (Ember.js,
+    React, Vue.js)
+  - EXPERIENCE → **Séniorité**: "Dev : 9 ans 10 mois + Lead : 4 ans 10 mois" (in October 2026), computed from the CV: lead = roles whose title says "Lead";
+    dev = the other roles, minus work-study jobs ("alternance", the EISTI job during the BTS).
+    Each month is counted once per total, so the changeover month from lead to dev counts in both.
+  - Chest → **Critère éliminatoire**: Télétravail idéal, hybride accepté, 5 jours sur site : refus
+- **Design:** GAME_DESIGN.md › "Core loop" and "The map is the CV".
+- **How it works:**
+  - `shared/intel.ts` holds the card ids and their source (`INTEL_CARDS`),
+    `INTEL_NEEDED_TO_PITCH` (3), `INTEL_REACH` (2 tiles) and `isWithinIntelReach`: the distance
+    from a position to the nearest tile of the building's footprint, or to the chest tile
+    (`CHEST_POSITION` in `shared/world.ts`).
+  - Tapping a building or the chest calls `MainScene.collectIntel(source)`. Too far, it calls
+    `onIntelOutOfReach` ("Get closer to collect its intel.") and sends nothing; the CV panel
+    still opens. Close enough, it sends `collect-intel { source }`.
+  - `CvRoom` checks the source is known, the card isn't held yet and the player stands within
+    reach, then pushes the card id to `PlayerState.intel` (an array, in the order earned).
+    Anything else is ignored.
+  - `LocalIntel` (`src/network/`) follows the visitor's own `intel` array and reports it to
+    `MainScene` → `Game` → `IntelInventory` (`src/ui/`, styled in `src/style.css`).
+    `intelCardText` (`src/content/intel.ts`) gives each id its French title and text.
+  - The inventory stays hidden until the room has synced, so single-player (F-023) never
+    shows it. It sits under the dialogs' backdrop, so it never covers a dialog on a phone.
+- **Code:** `shared/intel.ts`, `shared/world.ts`, `server/rooms/CvRoom.ts`,
+  `server/rooms/CvRoomState.ts`, `src/content/intel.ts`, `src/network/LocalIntel.ts`,
+  `src/scenes/MainScene.ts`, `src/ui/IntelInventory.ts`, `src/game/Game.ts`, `src/style.css`
+- **Tests:** `tests/unit/shared/intel.test.ts` (one card per source, reach, every source
+  reachable), `tests/unit/content/intel.test.ts` (texts match the preferences, lead months),
+  `tests/unit/ui/IntelInventory.test.ts`, `tests/unit/scenes/MainScene.test.ts` ("collecting
+  intel"); integration `tests/integration/server/CvRoom.test.ts` ("intel cards": too far,
+  twice, bad messages, only the sender), `tests/integration/network/LocalIntel.test.ts`;
+  e2e `tests/e2e/intel.spec.ts`
+- **Limits:**
+  - Interim sources: a click up close earns a card, no minigame yet (F-070). The cards
+    "Outils du quotidien", "Postes occupés", "Méthode", "Parcours" and "Langues" were
+    proposed and kept for the minigames.
+  - Cards live in the room: they're lost on reload or when the room closes (no accounts).
+  - The card texts ship in the client bundle, so a curious visitor can read them in the
+    source. They're public CV facts, so that's accepted.
+  - The pitch (F-042) only checks how many cards a recruiter holds, not which ones.
+
+## Interactions
+
+### F-040 Clickable chest
+
+🚧 Partial
+
+- **What:** a chest at tile (21, 21) that gives the secret intel card when tapped up close (F-031).
+- **How it works:** `Chest` is a clickable container. `MainScene.createChest` places it at
+  `CHEST_POSITION` (`shared/world.ts`, also used by the server's reach check) and calls
+  `collectIntel("chest")` on `pointertap`.
+- **Code:** `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`
+- **Tests:** `tests/unit/game/entities/Chest.test.ts` (clickable), `tests/unit/scenes/MainScene.test.ts`
+  ("collecting intel"), `tests/integration/server/CvRoom.test.ts` (the chest's card)
+- **Limits:** it doesn't block movement, it can't be reached with the keyboard (it's not an
+  accessible object like the buildings), and it's in plain sight rather than hidden. The
+  achievement (F-041) isn't built.
+
+### F-041 Achievements
+
+📋 Planned (phase 4)
+
+- **What:** badges for milestones: "Hired the dev", "Read the whole CV" (every section panel
+  opened), "Found the chest", "Hired in under 2 minutes", "Pitched like a pro" (first try).
+- **Design:** GAME_DESIGN.md › "Rewards".
+- **To do:** achievement definitions, unlock tracking, a toast notification, and an
+  achievements list. Decide whether they persist (local storage?).
+
+### F-042 Catch and pitch
+
+✅ Done (phase 2)
+
+- **What:** a recruiter who touches Ben (closer than 0.8 tile) with at least 3 intel cards
+  catches him: a dialog asks for an offer, one option per part (stack, work mode, role,
+  opening line). The server scores it against the owner's real preferences and Ben answers.
+  With fewer cards, Ben says "Do you even know what I do?". After a bad pitch, the same
+  recruiter waits 30 s ("Not again! Give me 29 s.").
+- **Design:** GAME_DESIGN.md › "The pitch".
+- **How it works:**
+  - `shared/preferences.ts` holds the ratings (perfect / accepted / fails) for the stack,
+    work mode and role, as answered by the CV owner. `shared/pitch.ts` holds the options
+    shown, Ben's replies, `CATCH_DISTANCE`, `PITCH_COOLDOWN_SECONDS` and `scorePitch`: any
+    part that fails ends the pitch with that part's reply (work mode first, the
+    deal-breaker), otherwise Ben is hired after a grumble for each accepted part.
+  - The **server detects the catch**: after every accepted move and every dev step,
+    `CvRoom.checkCatch` compares its own positions. `PitchTracker` (pure, given the time)
+    decides: open the dialog (for 60 s), refuse (no intel, or cooldown; at most one refusal
+    every 3 s), or nothing (a dialog is already open).
+  - Messages: the server sends `pitch` events (`open`, `refused` with Ben's line, `result`
+    with `hired` and his lines). The client sends `pitch` (the offer) and `pitch-cancel`.
+    An offer is only scored if it's valid and the sender's dialog is open; anything else is
+    ignored.
+  - Client: `PitchChannel` (`src/network/`) checks and passes events to `MainScene` →
+    `PitchFlow` (`src/ui/`, wired by `Game`). On `open`, `PitchFlow` pauses the scene and
+    opens `PitchDialog`; the offer goes back through `MainScene.pitch`, and closing without
+    pitching sends `pitch-cancel`. The answer shows in the same dialog ("You got me!" or
+    "Not this time"). Refusals and every line of Ben's answer are posted to the chat log (F-052). The event type (`PitchEvent`)
+    lives in `shared/pitch.ts`, so the server's messages are type-checked against it.
+- **Code:** `shared/pitch.ts`, `shared/preferences.ts`, `server/rooms/PitchTracker.ts`,
+  `server/rooms/CvRoom.ts`, `src/network/PitchChannel.ts`, `src/scenes/MainScene.ts`,
+  `src/ui/PitchDialog.ts`, `src/ui/PitchFlow.ts`, `src/game/Game.ts`, `src/style.css`
+- **Tests:** `tests/unit/shared/pitch.test.ts` (every rating, scoring, reply lengths),
+  `tests/unit/shared/preferences.test.ts`, `tests/unit/server/rooms/PitchTracker.test.ts`,
+  `tests/unit/network/PitchChannel.test.ts` (malformed events), `tests/unit/ui/PitchDialog.test.ts`,
+  `tests/unit/ui/PitchFlow.test.ts`, `tests/unit/scenes/MainScene.test.ts` ("pitching"); integration
+  `tests/integration/server/CvRoom.test.ts` ("catching the dev and pitching": no intel, not
+  touching, uncaught, invalid, cancelled, cooldown), `tests/integration/network/PitchChannel.test.ts`;
+  e2e `tests/e2e/pitch.spec.ts` (Ben turns down a recruiter without intel)
+- **Limits:**
+  - A good pitch shows Ben's answer and his contact details (F-043) to that recruiter only;
+    the others keep chasing (no rounds, see F-024 in Removed).
+  - Ben keeps running while the dialog is open; the catch only opens it. After a bad pitch
+    he doesn't teleport away, he just keeps fleeing.
+  - If the result never arrives (server gone), the dialog shows "Ben is thinking…" until
+    closed, and the scene stays paused.
+  - The full journey (3 cards, catch, pitch) has no e2e test: the chest can only be clicked
+    on the canvas, so it's covered by the integration tests instead.
+
+### F-043 Reward panel
+
+🚧 Partial: LinkedIn only, waiting for the CV PDF (and an email, if the owner wants one)
+
+- **What:** after a good pitch, the "You got me!" dialog also shows how to reach the dev for
+  real: his LinkedIn, with a copy button. An email and a "Download my CV (PDF)" link show up
+  as soon as they're added to `CONTACT`.
+- **Design:** GAME_DESIGN.md › "Rewards".
+- **How it works:**
+  - `CONTACT` (`src/content/contact.ts`, typed by `src/domain/Contact.ts`) holds only what
+    the owner chose to share: `linkedin` today; `email` and `cvPdf` (a path in `public/`)
+    are optional.
+  - `renderReward` (`src/ui/rewardSection.ts`) builds the section with `textContent` only:
+    one row per detail (link + Copy button, which says "Copied!" or "Copy failed"; the
+    clipboard needs HTTPS or localhost), then the PDF link if there is one. LinkedIn opens
+    in a new tab with `noopener noreferrer`.
+  - `PitchFlow` (`src/ui/`) passes it to `PitchDialog.showResult` for a good pitch only.
+- **Code:** `src/domain/Contact.ts`, `src/content/contact.ts`, `src/ui/rewardSection.ts`,
+  `src/ui/PitchFlow.ts`, `src/ui/PitchDialog.ts`, `src/style.css`
+- **Tests:** `tests/unit/ui/rewardSection.test.ts` (owner's LinkedIn, optional details, copy,
+  no clipboard), `tests/unit/ui/PitchFlow.test.ts` (good pitch only),
+  `tests/unit/ui/PitchDialog.test.ts` (extra content)
+- **To do:**
+  - The CV PDF (needs the owner) in `public/`, and `cvPdf` in `CONTACT`. Check the download
+    from the production build (`npm start`), not only the dev server.
+  - The "Hired the dev" achievement (F-041).
+  - An e2e test of the full loop. The chest can only be clicked on the canvas, so this
+    needs a way to reach it with the keyboard first.
+- **Limits:** the contact details ship in the client bundle, so they aren't secret. That's
+  fine for a LinkedIn profile, which is public anyway.
+
+## Display
+
+### F-050 Theme switcher
+
+✅ Done
+
+- **What:** a button in the top-left corner ("🎨 <theme>") cycles the colours of the background
+  and map tiles, plus the building titles: Classic (default, the original colours) → Simpsons → South Park → Classic.
+  The choice is not remembered between visits.
+- **How it works:** palettes live in `THEMES` (`src/config/themes.ts`). `ThemeCycle` holds the
+  current theme, moves to the next one and notifies listeners. `ThemeButton` is an HTML
+  `<button>` (styled in `src/style.css`) that calls `next()` and gives focus back to the game.
+  `Game` connects them: on change, `MainScene.applyTheme` sets the renderer background,
+  `GameMap.applyTheme` redraws every tile, each `Building.applyTheme` recolours its title
+  with the theme's `label` colour, and `<html data-theme="…">` is updated.
+- **Code:** `src/config/themes.ts`, `src/game/ThemeCycle.ts`, `src/ui/ThemeButton.ts`,
+  `src/style.css`, `src/game/Map.ts`, `src/scenes/MainScene.ts`, `src/game/Game.ts`
+- **Tests:** `tests/unit/game/ThemeCycle.test.ts`, `tests/unit/config/themes.test.ts`,
+  `tests/unit/ui/ThemeButton.test.ts`, `tests/unit/game/Map.test.ts` (tile colours),
+  `tests/unit/scenes/MainScene.test.ts`; e2e `tests/e2e/themes.spec.ts`
+- **Limits:** buildings, players and the chest keep their own colours. Building titles are small
+  (12px, scaled down with the camera). Adding a theme means adding an entry to `THEMES`; its
+  `label` colour must reach a 4.5:1 contrast with `tile.fill` (a test checks this).
+
+### F-051 Debug mode
+
+💡 Idea
+
+- **What:** a clickable icon (e.g. "🐞", next to the theme button) toggles a debug overlay
+  that shows what the code is doing, drawn over the map:
+  - the local player's grid position (fractional and rounded tile), speed and direction
+    (arrow), and the position last accepted by the server
+  - blocked tiles from the collision map and building footprints
+  - paths and targets once movement logic exists (the dev wandering or fleeing, F-060 /
+    F-061, or any pathfinding)
+  - other visitors' positions, connection status, FPS
+- **Design:** a developer tool outside the "Headhunted" story, but it also shows recruiters
+  how the game is built, so it fits the CV's purpose. That's why the icon is shown to every
+  visitor (no hidden flag). Keep its labels in English.
+- **To do:**
+  - an HTML toggle button like `ThemeButton` (styled in `src/style.css`, focus back to the game)
+  - a Pixi overlay container in `MainScene`, redrawn each frame only while on, with positions
+    converted through `IsometricConverter`
+  - expose the data from pure getters (e.g. `Player` speed/direction) and build the overlay
+    data in Pixi-free logic so it can be unit tested
+  - overlay colours readable on every theme (F-050), and an e2e test for the toggle
+
+### F-052 Chat log
+
+✅ Done
+
+- **What:** a box in the bottom-left corner that keeps every message the game shows the
+  visitor, newest at the bottom: Ben's lines ("**Ben**: Do you even know what I do?", his
+  answers to a pitch) and game notices in italics ("New intel: Séniorité", "Get closer to
+  collect its intel.").
+- **How it works:** `ChatLog` (`src/ui/`) is an HTML `<aside aria-label="Messages">` with a
+  `role="log"` list, hidden until the first message. `post({ speaker?, text })` appends a line
+  built with `textContent` only, drops the oldest past `CHAT_LOG_LIMIT` (50) and scrolls to
+  the bottom. `Game` wires it: `IntelInventory` announces new cards through a callback,
+  `onIntelOutOfReach` posts the hint, and `PitchFlow` posts Ben's refusals and each result
+  line with `speaker: "Ben"`.
+- **Code:** `src/ui/ChatLog.ts`, `src/ui/IntelInventory.ts`, `src/ui/PitchFlow.ts`,
+  `src/game/Game.ts`, `src/style.css`
+- **Tests:** `tests/unit/ui/ChatLog.test.ts` (hidden until used, speakers, plain text, limit),
+  `tests/unit/ui/IntelInventory.test.ts`, `tests/unit/ui/PitchFlow.test.ts` (Ben's lines);
+  e2e `tests/e2e/intel.spec.ts`, `tests/e2e/pitch.spec.ts`
+- **Limits:** display only and local: visitors can't type, and each one sees only their own
+  messages (no shared chat between recruiters). The log isn't kept between visits. On small
+  phones it can overlap the map's bottom-left corner.
+
+## Story & the dev
+
+### F-060 The dev wanders
+
+✅ Done
+
+- **What:** Ben, the dev (jeans, white shirt, glasses, his name above him), wanders the map on
+  his own. The server moves him, so every visitor sees him in the same place.
+- **Design:** GAME_DESIGN.md › "Characters".
+- **How it works:**
+  - `shared/world.ts` holds `DEV_NAME` ("Ben"), `DEV_SPAWN` (18, 18) and `DEV_SPEED`
+    (2.4 tiles/s, slower than recruiters' 3).
+  - `DevWanderer` (`server/rooms/DevWanderer.ts`) is pure logic: pick a random walkable
+    tile up to 5 tiles away on each axis, walk to it in a straight line, pause 0.5–2 s, repeat.
+    If the next step isn't walkable (a building or the edge) he drops the target and picks
+    another. A step covers at most 0.1 s, so a stalled server can't jump him through a wall.
+  - `CvRoom` puts a `DevState` (name, column, row) in `CvRoomState.dev` and calls
+    `DevWanderer.update` 20 times a second with `setTimestep`. Clients have no message to
+    move him. `DEV_WANDERS=false` keeps him at his spawn (the e2e server uses it, so a
+    canvas only changes when a visitor moves).
+  - On the client, `RemoteDev` listens to `state.dev`, adds a `Dev` (Pixi drawing,
+    `src/game/entities/Dev.ts`) to the world, moves it on every change and logs
+    `[DEV] Shown: Ben`. `MainScene` creates it once connected and passes the theme on, so
+    his name uses the theme's `label` colour.
+- **Code:** `shared/world.ts`, `server/rooms/DevWanderer.ts`, `server/rooms/CvRoom.ts`,
+  `server/rooms/CvRoomState.ts`, `src/network/RemoteDev.ts`, `src/game/entities/Dev.ts`,
+  `src/scenes/MainScene.ts`
+- **Tests:** `tests/unit/server/rooms/DevWanderer.test.ts` (speed, pause, buildings,
+  stalls, a long seeded walk), `tests/unit/shared/world.test.ts` (spawn, slower than
+  recruiters), `tests/unit/game/entities/Dev.test.ts`, `tests/unit/scenes/MainScene.test.ts`;
+  integration `tests/integration/server/CvRoom.test.ts` ("the dev"),
+  `tests/integration/network/RemoteDev.test.ts`; e2e "shows the dev, Ben, on the map"
+- **Limits:**
+  - Only with the server: in single-player mode (F-023) there's no Ben.
+  - He jumps between server updates (20 per second) with no smoothing on the client.
+  - He can walk through recruiters (he runs from them, F-061, but doesn't collide).
+  - His outfit doesn't follow the theme yet (Simpsons yellow, South Park cut-out).
+  - Each room has its own Ben; with one room (max 10 visitors) that's the same for everyone.
+
+### F-061 The dev runs away
+
+✅ Done
+
+- **What:** when recruiters come within 4 tiles, Ben runs away from them. He's slower than
+  them (2.4 vs 3 tiles/s) but sprints when one gets very close, so a recruiter can't run him
+  down in the open: they catch him by pinning him against a building or the map edge, or by
+  closing in from two sides.
+- **Design:** GAME_DESIGN.md › "Characters".
+- **How it works:**
+  - `DEV_FLEE_RADIUS` (4 tiles) and `DEV_SPRINT` are in `shared/world.ts`.
+  - Each server tick, `CvRoom` passes every recruiter's position to `DevWanderer.update`.
+    `threatsWithin` (`server/rooms/flee.ts`) keeps the ones inside the radius. If there are
+    any, he drops his wander target and pause and takes a `fleeStep`; once none is left he
+    picks a new wander target straight away.
+  - `fleeStep` tries a step in 16 directions and keeps the walkable one that puts him
+    farthest from the recruiters, each weighted by 1 / its current distance, so the closest
+    counts most. Two recruiters on opposite sides make him slip out sideways. If no step beats
+    standing still, he stays put: that's being cornered. The direction vectors are rounded so a
+    step along the map edge stays on the map.
+  - **Sprint:** when a recruiter is within 1.5 tiles and he's not cooling down, he runs at
+    4 tiles/s for 1 s, then can't sprint for 1.5 s. A sprint gains 1 tile on a recruiter and
+    the cooldown loses 0.9, so a straight chase never closes the gap in the open. Timers ignore
+    leftovers under 1e-9 s (floating-point rounding would otherwise add a tick).
+- **Code:** `server/rooms/flee.ts`, `server/rooms/DevWanderer.ts`, `server/rooms/CvRoom.ts`,
+  `shared/world.ts`
+- **Tests:** `tests/unit/server/rooms/flee.test.ts` (open ground, two recruiters, closest
+  first, map edge, buildings, cornered), `tests/unit/server/rooms/DevWanderer.test.ts`
+  ("with recruiters nearby", "sprinting": trigger, duration and cooldown, a simulated straight
+  chase that only catches him against the map edge, and two recruiters catching him faster),
+  `tests/unit/shared/world.test.ts` (a sprint gains more than the cooldown loses),
+  `tests/integration/server/CvRoom.test.ts` ("runs away from a recruiter who comes close",
+  with `Math.random` fixed so wandering can't fake it). No e2e test: steering a keyboard into
+  a moving target is slow and flaky, and the chase simulations cover it.
+- **Limits:**
+  - He runs straight away from recruiters, so he often ends up against the map edge. He
+    doesn't plan an escape route or avoid walls ahead of time.
+  - Visitors can't see when he sprints (no animation or sign yet).
+  - Catching him (touching him, then the pitch) is F-042.
+  - He only reacts to recruiters' last positions from the server, at 20 updates a second.
+
+### F-062 Dev speech bubbles
+
+💡 Idea
+
+- **What:** the dev taunts recruiters in short bubbles ("Not open to work… unless it's remote").
+- **Design:** GAME_DESIGN.md › "Tone" (example lines).
+
+### F-063 Recruiter-spam hazards
+
+💡 Idea
+
+- **What:** flying "exciting opportunity" emails that slow down recruiters they hit.
+- **Design:** GAME_DESIGN.md › "Ideas not yet scheduled".
+
+## Minigames
+
+### F-070 Minigame framework
+
+📋 Planned (phase 3)
+
+- **What:** entering a district's building starts its minigame in its own scene. When the game
+  ends, the section panel (F-030) opens, and a win grants the intel card (F-031).
+- **Design:** GAME_DESIGN.md › "Minigames".
+- **To do:** a scene switch between the hub and minigames (`BootScene`/`CvScene` are placeholder
+  stubs today), a shared minigame interface (start, update, result), pausing hub movement, and tests.
+
+### F-071 Skills Park: buzzword catcher
+
+📋 Planned (phase 3)
+
+- **What:** tech logos and buzzwords fall from the top. Catch the dev's real stack, dodge what
+  he dislikes and the pure buzzwords. Reach the target score before time runs out to win.
+- **Design:** GAME_DESIGN.md › "Skills Park: buzzword catcher".
+- **To do:** falling-item logic as pure functions (spawn, catch, score: unit tests), the scene,
+  the skill data from F-030, and an e2e test.
+
+### F-072 Experience Avenue: career timeline
+
+💡 Idea
+
+- **What:** drag job cards into chronological order. Teaches the career path.
+
+### F-073 Projects Lab: match-up
+
+💡 Idea
+
+- **What:** match each project to its technology and description.
+
+### F-074 Education Campus: quiz
+
+💡 Idea
+
+- **What:** three quick multiple-choice questions about the education section.
+
+## Delivery & deployment
+
+These features ship the game. They sit outside the "Headhunted" story. Target: one generic
+Docker image (Colyseus server + built client) that runs on any container host, with no
+provider lock-in.
+
+### F-080 Production server config
+
+✅ Done
+
+- **What:** one Node process serves the built client and the Colyseus room on one port,
+  configured by environment variables, without `tsx`.
+- **How it works:**
+  - `server/index.ts` listens on `PORT` (default `2567`).
+  - `server/app.config.ts` passes an `express` hook to `defineServer`; `configureHttp`
+    (`server/http.ts`) adds `GET /health` (`{ "status": "ok" }`) and serves the built client
+    from `CLIENT_DIR` (default `dist/`, relative to the working directory). In dev and tests
+    `dist/` may be missing: those requests just 404.
+  - The client asks `serverEndpoint` (`src/network/serverEndpoint.ts`) where to connect:
+    `VITE_SERVER_URL` if set at build time, else `http://localhost:2567` under `npm run dev`,
+    else the page's own origin. The Colyseus SDK turns `http(s)` into `ws(s)`.
+  - `npm run build` type-checks, builds the client into `dist/`, then runs `build:server`:
+    Vite in SSR mode (`vite.server.config.ts`) bundles `server/` + `shared/` into
+    `build/server/index.js`, with npm packages left external. `npm start` runs it with Node.
+- **Code:** `server/index.ts`, `server/app.config.ts`, `server/http.ts`,
+  `src/network/serverEndpoint.ts`, `src/network/MultiplayerClient.ts`, `src/vite-env.d.ts`,
+  `vite.server.config.ts`, `package.json` scripts
+- **Tests:** `tests/unit/server/http.test.ts` (health, static files, 404),
+  `tests/unit/network/serverEndpoint.test.ts`, `tests/integration/server/http.test.ts`
+  (the real server answers `/health`)
+- **Limits:** no compression or cache headers on static files. No SPA fallback (there's only
+  one page). `PORT` isn't validated: a non-number fails at `listen`.
+
+### F-081 Docker image
+
+🚧 In progress: written, not built yet (Docker isn't installed on the dev machine). The first CI
+run (F-082) is its first real test.
+
+- **What:** a `Dockerfile` that builds one small image running the whole game, plus a
+  `compose.yaml` to run it locally with `docker compose up --build`.
+- **How it works:** two stages on `node:24-alpine`. The build stage runs `npm ci` and
+  `npm run build`. The runtime stage installs production dependencies only, copies `dist/`
+  and `build/`, runs as the non-root `node` user on port `2567`, and has a `HEALTHCHECK`
+  on `/health`. `npm ci --ignore-scripts` skips the optional native `msgpackr-extract`
+  build (Colyseus falls back to plain JS). `.dockerignore` keeps docs, tests output, `.git`
+  and `.claude` out of the build context.
+- **Code:** `Dockerfile`, `.dockerignore`, `compose.yaml`
+- **Tests:** the CI `docker` job (F-082).
+- **To do:** see the image build and pass once in CI, then mark ✅. `pixi.js` and
+  `@colyseus/sdk` are runtime `dependencies` but only the client bundle needs them, so the
+  runtime image installs them for nothing (moving them to `devDependencies` would shrink it).
+
+### F-082 CI builds and smoke-tests the image
+
+🚧 In progress: written, not run yet (the repo has no commits or remote).
+
+- **What:** every push and PR proves the production build works, not only the tests.
+- **How it works:** the `check` job in `.github/workflows/ci.yml` now also runs
+  `npm run build`. A `docker` job (after `check`) builds the image with Buildx and the
+  GitHub Actions layer cache, starts it, polls `/health` for up to 30 s, checks that `/`
+  serves the game's `index.html`, and prints the container logs on failure.
+- **Code:** `.github/workflows/ci.yml`
+- **To do:** see it pass once on GitHub, then mark ✅. Optionally run the Playwright
+  journeys against the container instead of the dev servers.
+
+### F-083 Publish the image on release
+
+📋 Planned
+
+- **What:** cutting a release publishes a versioned image to a registry, ready to deploy.
+- **Depends on:** F-082.
+- **To do:**
+  - a workflow on `v*` tags that builds and pushes to GitHub Container Registry
+    (`ghcr.io/<owner>/cv-game`) with tags `<version>`, `<major>.<minor>` and `latest`, using
+    the built-in `GITHUB_TOKEN`
+  - only publish once the CI checks pass for that commit
+  - add the image step to the `release` skill and the CHANGELOG release notes
+
+### F-084 Deploy to a host
+
+💡 Idea
+
+- **What:** run the published image somewhere public, behind HTTPS so the WebSocket uses
+  `wss://`.
+- **Design:** the image stays host-agnostic. The host is still open (a VPS with
+  `docker compose` + a reverse proxy such as Caddy, or a container platform such as Fly.io,
+  Render or Railway). Pick one before moving this to 📋.
+- **To do:**
+  - choose the host, then write `docs/DEPLOY.md` (env vars, ports, TLS, health check, rollback
+    to a previous image tag)
+  - optional continuous deployment: deploy the new image automatically after F-083 publishes
+    it, with the secrets kept in GitHub environment secrets
+  - Colyseus keeps rooms in memory, so run one instance (scaling out needs a presence driver
+    such as Redis)
+
+## Removed
+
+### F-024 Competitive rounds
+
+❌ Removed (never built), at the owner's request: not needed.
+
+- **Was:** every recruiter hunts the same dev; the first good pitch wins the round ("🏆 Alice
+  (SynergyCorp) hired the dev in 2:13"), then the dev escapes and a new round starts.
+- **Instead:** each recruiter catches and pitches Ben on their own. A hire ends nothing for
+  the others (GAME_DESIGN.md › "Multiplayer").

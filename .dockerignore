@@ -1,0 +1,25 @@
+# Rebuilt inside the image
+node_modules
+dist
+build
+
+# Test and coverage output
+coverage
+test-results
+playwright-report
+blob-report
+
+# Not needed to build or run the game
+.git
+.github
+.claude
+.vscode
+.idea
+docs
+*.md
+*.log
+.env
+.env.*
+Dockerfile
+.dockerignore
+compose.yaml
