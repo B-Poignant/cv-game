@@ -8,6 +8,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Added
 
+- F-070: the minigame framework. A building with a minigame plays it when opened from up
+  close (Escape quits), then shows its CV panel, win or lose; a win earns the intel card. The
+  first minigame comes with F-071. The unused `BootScene` and `CvScene` placeholders are gone.
 - F-005: the map is the CV. It grows to 24×24 and is split into districts named on the
   ground: Skills Park, Experience Avenue and a new Education Campus, whose EDUCATION building
   shows the education and languages (moved out of the other two panels). Recruiters now

@@ -36,7 +36,9 @@ src/
                      IsometricConverter (grid <-> screen), GridPosition
     entities/        world objects (Building, Chest, DistrictGround)
     factories/       builders for entities from config
-  scenes/            Pixi Containers: BootScene, MainScene (world), CvScene
+    minigames/       the Minigame contract every minigame implements (F-070)
+  scenes/            Pixi Containers: MainScene (world), MinigameScene + MinigameFlow (F-070),
+                     minigames/registry.ts (which building runs which minigame)
   ui/                HTML UI over the canvas: CvPanel + cvSections, ThemeButton, IdentityPanel,
                      IntelInventory, ChatLog, PitchDialog + PitchFlow + rewardSection
   domain/            plain CV data types (Experience, Skill, Project, Education), no Pixi

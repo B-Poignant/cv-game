@@ -94,6 +94,17 @@ sequenceDiagram
 `Building` `pointertap` → `MainScene` `onBuildingSelected(section)` → `Game` →
 `CvPanel.open(section)` → `CvPanel.onOpenChange(true)` → `MainScene.setPaused(true)`.
 
+### Playing a minigame (F-070)
+
+`Building` `pointertap` → `MainScene.openBuilding`: the building has a minigame
+(`MinigameLauncher.hasMinigame`), the visitor is within reach and doesn't hold its card →
+`MinigameFlow.start(section)` (`Game` hands it to the scene with `setMinigames`) → `MainScene`
+paused and hidden → `MinigameScene.play(definition)`
+(board, title, Escape = loss) → the minigame calls `finish({ won })` → `MinigameFlow` posts the
+result to the chat log → `MainScene.minigameEnded`: a win runs `collectIntel` (the server
+still checks reach and duplicates) → `CvPanel.open(section)`, win or lose → closing it resumes
+the map. Otherwise the tap falls back to "Opening a CV section" and "Collecting intel".
+
 ### Collecting intel (F-031)
 
 `Building` or `Chest` `pointertap` → `MainScene.collectIntel(source)` → (too far:
@@ -125,7 +136,8 @@ background, `GameMap.applyTheme`, `Building.applyTheme`, `<html data-theme>`.
 3. `MainScene` builds the map, buildings, chest, player and camera, then connects to the
    server in the background. If that fails, it logs the error and the game stays
    single-player (F-023).
-4. **Each frame:** `Game.update` → `MainScene.update` → `Player.update` (unless paused) and
+4. **Each frame:** `Game.update` → `MinigameScene.update` (the running minigame, if any) and
+   `MainScene.update` → `Player.update` (unless paused) and
    depth sorting (`zIndex = y`).
 5. **Teardown:** `Game.destroy` removes the ticker, destroys UI and scenes, and each owner
    removes its own `window` listeners and leaves the room.
@@ -164,9 +176,14 @@ reaches a 4.5:1 contrast with `tile.fill`.
 
 ### A scene or minigame (F-070)
 
-Create a `Container` in `src/scenes/` and let `Game` switch between scenes. Keep the game
-rules (spawning, scoring) as pure functions in their own module, with unit tests. The scene
-only draws and reads input.
+1. Keep the rules (spawning, scoring, winning) as pure functions in their own module, with
+   unit tests.
+2. Implement `Minigame` (`src/game/minigames/Minigame.ts`): draw into `view` (origin = the
+   play area's top-left corner, size from the `MinigameContext`), read your own input (remove
+   listeners in `destroy`), and call `finish({ won })` once. Don't call it from `create`.
+3. Register a `MinigameDefinition` (title + `create`) for its section in `MINIGAMES`
+   (`src/scenes/minigames/registry.ts`). `MinigameScene` and `MinigameFlow` do the rest:
+   board, title, Escape, resize, theme, the card on a win and the CV panel afterwards.
 
 ### A server rule
 
@@ -196,4 +213,3 @@ Things that are in the way of scaling. Fix them when a feature touches them.
 | `MainScene` creates its own `MultiplayerClient` (its URL comes from `serverEndpoint`)  | `src/scenes/MainScene.ts`, `MultiplayerClient` | Hard to swap. Tests have to mock the module.    |
 | No reconciliation: a rejected move leaves the local player out of sync with the server | `Player`, `MainScene`                          | The local and server positions can drift apart. |
 | The chest doesn't block movement                                                       | `MainScene.createChest`, `shared/world.ts`     | Recruiters walk through it.                     |
-| `BootScene` and `CvScene` are placeholders                                             | `src/scenes/`                                  | Nothing switches scenes yet (F-070).            |

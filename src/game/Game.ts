@@ -2,6 +2,9 @@ import { Application, type Ticker } from "pixi.js";
 
 import { DEFAULT_THEME, THEMES } from "../config/themes";
 import { MainScene } from "../scenes/MainScene";
+import { MinigameFlow } from "../scenes/MinigameFlow";
+import { MinigameScene } from "../scenes/MinigameScene";
+import { MINIGAMES } from "../scenes/minigames/registry";
 import { CV } from "../content/cv";
 import { CONTACT } from "../content/contact";
 import { intelCardText } from "../content/intel";
@@ -17,6 +20,7 @@ import { ThemeCycle } from "./ThemeCycle";
 export class Game {
   private readonly app: Application;
   private mainScene?: MainScene;
+  private minigameScene?: MinigameScene;
   private themeButton?: ThemeButton;
   private cvPanel?: CvPanel;
   private identityPanel?: IdentityPanel;
@@ -61,6 +65,17 @@ export class Game {
         chatLog.post({ text: "Get closer to collect its intel." }),
       onPitchEvent: (event) => pitchFlow.handle(event),
     });
+    const minigameScene = new MinigameScene(this.app.renderer);
+    this.minigameScene = minigameScene;
+    this.mainScene.setMinigames(
+      new MinigameFlow(
+        this.mainScene,
+        minigameScene,
+        MINIGAMES,
+        this.cvPanel,
+        chatLog,
+      ),
+    );
     this.pitchDialog = new PitchDialog();
     const pitchFlow = new PitchFlow(
       this.mainScene,
@@ -70,11 +85,15 @@ export class Game {
     );
     this.cvPanel.onOpenChange((open) => this.mainScene?.setPaused(open));
 
-    this.app.stage.addChild(this.mainScene);
+    this.app.stage.addChild(this.mainScene, minigameScene);
 
     const themes = new ThemeCycle(THEMES);
-    themes.onChange((theme) => this.mainScene?.applyTheme(theme));
+    themes.onChange((theme) => {
+      this.mainScene?.applyTheme(theme);
+      this.minigameScene?.applyTheme(theme);
+    });
     this.mainScene.applyTheme(themes.current);
+    minigameScene.applyTheme(themes.current);
     this.themeButton = new ThemeButton(themes);
 
     this.app.ticker.add(this.update);
@@ -90,6 +109,7 @@ export class Game {
 
   private update = (ticker: Ticker): void => {
     this.mainScene?.update(ticker.deltaMS / 1000);
+    this.minigameScene?.update(ticker.deltaMS / 1000);
   };
 
   public destroy(): void {
@@ -118,6 +138,9 @@ export class Game {
 
     this.pitchDialog?.destroy();
     this.pitchDialog = undefined;
+
+    this.minigameScene?.destroy(true);
+    this.minigameScene = undefined;
 
     this.mainScene?.destroy(true);
     this.mainScene = undefined;

@@ -56,7 +56,7 @@ it, or unscheduled).
 | [F-062](#f-062-dev-speech-bubbles)                  | Dev speech bubbles                       | 💡     | 4        | —                                                                                                         | —                      |
 | [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | 💡     | 4        | —                                                                                                         | —                      |
 | **Minigames**                                       |                                          |        |          |                                                                                                           |                        |
-| [F-070](#f-070-minigame-framework)                  | Minigame framework                       | 📋     | 3        | —                                                                                                         | —                      |
+| [F-070](#f-070-minigame-framework)                  | Minigame framework                       | ✅     | 3        | `src/game/minigames/Minigame.ts`, `src/scenes/MinigameScene.ts`, `src/scenes/MinigameFlow.ts`             | unit                   |
 | [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | 📋     | 3        | —                                                                                                         | —                      |
 | [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | 💡     | 4        | —                                                                                                         | —                      |
 | [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | 4        | —                                                                                                         | —                      |
@@ -78,7 +78,7 @@ playable on its own.
 | **0. Prerequisite** ✅ | shared client/server config (`shared/`)  | Map size, spawn, buildings, walkability and the dev's preferences defined once (fixed the F-001 and F-022 limits) |
 | **1. Foundations** ✅  | F-030 ✅, F-005 ✅, F-012 ✅, F-060 ✅   | Walk the CV map as a named recruiter, read sections, see the dev wander                                           |
 | **2. The chase** ✅    | F-061 ✅, F-031 ✅, F-042 ✅, F-043 ✅   | Full loop: collect intel, chase, pitch, get the contact details                                                   |
-| **3. Minigames**       | F-070, F-071                             | Intel earned by playing, starting with the Skills Park                                                            |
+| **3. Minigames**       | F-070 ✅, F-071                          | Intel earned by playing, starting with the Skills Park                                                            |
 | **4. Polish**          | F-041, F-062, F-063, F-072, F-073, F-074 | Achievements, personality, the remaining minigames                                                                |
 
 Delivery & deployment (F-080 → F-084) is a separate track outside the story. It can be built
@@ -670,13 +670,45 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ### F-070 Minigame framework
 
-📋 Planned (phase 3)
+✅ Done (phase 3): the framework; the first minigame is F-071
 
-- **What:** entering a district's building starts its minigame in its own scene. When the game
-  ends, the section panel (F-030) opens, and a win grants the intel card (F-031).
-- **Design:** GAME_DESIGN.md › "Minigames".
-- **To do:** a scene switch between the hub and minigames (`BootScene`/`CvScene` are placeholder
-  stubs today), a shared minigame interface (start, update, result), pausing hub movement, and tests.
+- **What:** opening a building that has a minigame, from up close and without its card yet,
+  starts the minigame on a board over the map instead of opening the CV panel. Win or lose,
+  the section's CV panel opens afterwards, so everyone reads the CV; a win also earns the
+  card (F-031). Escape quits (a loss). The result goes to the chat log ("SKILLS PARK: you won!"
+  or "…: not this time. The answers are in the CV.").
+- **Design:** GAME_DESIGN.md › "Minigames" and "Core loop".
+- **How it works:**
+  - `Minigame` (`src/game/minigames/Minigame.ts`) is the contract: a `view` to draw in,
+    `update(deltaSeconds)`, optional `resize` and `applyTheme`, `destroy`, and a `finish({ won })`
+    callback given at creation. A `MinigameDefinition` adds the title and the `create` factory.
+  - `MINIGAMES` (`src/scenes/minigames/registry.ts`) maps a CV section to its definition.
+  - `MainScene.openBuilding` plays the minigame only when the building has one, the visitor
+    stands within `INTEL_REACH` and doesn't hold its card. Otherwise the interim rule stays
+    (panel + card up close). `minigameEnded` runs `collectIntel` after a win, so the server
+    still checks reach and duplicates.
+  - `MinigameFlow` (`src/scenes/`, wired by `Game`, testable without WebGL) pauses and hides
+    the map, plays, posts the result, calls `minigameEnded`, then opens the CV panel, whose
+    closing resumes the map.
+  - `MinigameScene` runs one minigame at a time on a board centred on the screen (at most
+    720×540, leaving room for the HTML UI) in the theme's tile colours, with the title in its
+    `label` colour. It forwards frames, resizes and theme changes, handles Escape, and removes
+    and destroys the minigame once it ends (only the first `finish` counts).
+  - The unused `BootScene` and `CvScene` placeholders were removed.
+- **Code:** `src/game/minigames/Minigame.ts`, `src/scenes/MinigameScene.ts`,
+  `src/scenes/MinigameFlow.ts`, `src/scenes/minigames/registry.ts`, `src/scenes/MainScene.ts`,
+  `src/game/Game.ts`
+- **Tests:** `tests/unit/scenes/MinigameScene.test.ts` (board size on desktop and phone, theme,
+  frames, result and cleanup, only the first end counts, Escape, one at a time, resize,
+  destroy), `tests/unit/scenes/MinigameFlow.test.ts` (order of steps, panel after a loss,
+  buildings without a minigame), `tests/unit/scenes/MainScene.test.ts` ("with a minigame":
+  in reach, too far, card held, other buildings, card after a win only)
+- **Limits:**
+  - The result is reported by the client, so a modified client could fake a win (accepted in
+    GAME_DESIGN.md › "Technical principles"). The server still checks reach and duplicates.
+  - Too far from a building with a minigame, the panel opens as before with "Get closer to
+    collect its intel." There's no replay once the card is held.
+  - Ben keeps running on the server while a minigame is played.
 
 ### F-071 Skills Park: buzzword catcher
 

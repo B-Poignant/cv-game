@@ -397,6 +397,103 @@ describe("MainScene", () => {
       expect(onIntelOutOfReach).not.toHaveBeenCalled();
     });
 
+    // F-070: a building with a minigame plays it first; a win claims the card.
+    describe("with a minigame", () => {
+      async function minigameScene() {
+        const onMinigameRequested = vi.fn(async () => {});
+        const onBuildingSelected = vi.fn();
+        const scene = await joinedScene({ onBuildingSelected });
+        scene.scene.setMinigames({
+          hasMinigame: (section) => section === "skills",
+          start: onMinigameRequested,
+        });
+
+        return { ...scene, onMinigameRequested, onBuildingSelected };
+      }
+
+      it("starts the minigame instead of opening the panel or asking for the card", async () => {
+        const {
+          standAt,
+          tap,
+          skills,
+          onMinigameRequested,
+          onBuildingSelected,
+        } = await minigameScene();
+        standAt(6, 7);
+
+        tap(skills);
+
+        expect(onMinigameRequested).toHaveBeenCalledExactlyOnceWith("skills");
+        expect(onBuildingSelected).not.toHaveBeenCalled();
+        expect(network.send).not.toHaveBeenCalled();
+      });
+
+      it("opens the panel as before when too far to earn the card", async () => {
+        const {
+          standAt,
+          tap,
+          skills,
+          onMinigameRequested,
+          onBuildingSelected,
+        } = await minigameScene();
+        standAt(PLAYER_SPAWN.column, PLAYER_SPAWN.row);
+
+        tap(skills);
+
+        expect(onMinigameRequested).not.toHaveBeenCalled();
+        expect(onBuildingSelected).toHaveBeenCalledExactlyOnceWith("skills");
+      });
+
+      it("opens the panel straight away once the card is held", async () => {
+        const {
+          standAt,
+          tap,
+          skills,
+          onMinigameRequested,
+          onBuildingSelected,
+        } = await minigameScene();
+        localIntel.onChange?.(["stack"]);
+        standAt(6, 7);
+
+        tap(skills);
+
+        expect(onMinigameRequested).not.toHaveBeenCalled();
+        expect(onBuildingSelected).toHaveBeenCalledExactlyOnceWith("skills");
+      });
+
+      it("leaves buildings without a minigame unchanged", async () => {
+        const { standAt, tap, ofType, onMinigameRequested } =
+          await minigameScene();
+        const experience = ofType(Building).find(
+          (building) => building.title === "EXPERIENCE",
+        )!;
+        standAt(
+          experience.gridPosition.column,
+          experience.gridPosition.row - 1,
+        );
+
+        tap(experience);
+
+        expect(onMinigameRequested).not.toHaveBeenCalled();
+        expect(network.send).toHaveBeenCalledExactlyOnceWith("collect-intel", {
+          source: "experience",
+        });
+      });
+
+      it("asks the server for the card after a win, and not after a loss", async () => {
+        const { scene, standAt } = await minigameScene();
+        standAt(6, 7);
+
+        scene.minigameEnded("skills", { won: false });
+        expect(network.send).not.toHaveBeenCalled();
+
+        scene.minigameEnded("skills", { won: true });
+        expect(network.send).toHaveBeenCalledExactlyOnceWith("collect-intel", {
+          source: "skills",
+        });
+      });
+    });
+
     it("stops following the cards when destroyed", async () => {
       localIntel.destroy.mockClear();
       const { scene } = await joinedScene();

@@ -20,6 +20,7 @@ import type { Building } from "../game/entities/Building";
 import { Chest } from "../game/entities/Chest";
 import { DistrictGround } from "../game/entities/DistrictGround";
 import { BuildingFactory } from "../game/factories/BuildingFactory";
+import type { MinigameResult } from "../game/minigames/Minigame";
 import { LocalIntel } from "../network/LocalIntel";
 import { MultiplayerClient } from "../network/MultiplayerClient";
 import { PitchChannel } from "../network/PitchChannel";
@@ -35,6 +36,12 @@ export interface MainSceneOptions {
   onIntelOutOfReach?: (source: IntelSource) => void;
   /** Called when the server opens the pitch dialog, refuses a pitch or scores one (F-042). */
   onPitchEvent?: (event: PitchEvent) => void;
+}
+
+/** Starts buildings' minigames (F-070): `MinigameFlow`. */
+export interface MinigameLauncher {
+  hasMinigame(section: CvSectionId): boolean;
+  start(section: CvSectionId): Promise<void>;
 }
 
 export class MainScene extends Container {
@@ -57,6 +64,7 @@ export class MainScene extends Container {
   private theme?: Theme;
 
   private readonly options: MainSceneOptions;
+  private minigames?: MinigameLauncher;
   private paused = false;
 
   constructor(renderer: Renderer, options: MainSceneOptions = {}) {
@@ -185,6 +193,18 @@ export class MainScene extends Container {
     this.multiplayerClient.getRoom().send("collect-intel", { source });
   }
 
+  /** Set once by `Game`, which creates the launcher after the scene. */
+  public setMinigames(minigames: MinigameLauncher): void {
+    this.minigames = minigames;
+  }
+
+  /** A building's minigame ended (F-070): a win earns its card, with the usual checks. */
+  public minigameEnded(section: CvSectionId, result: MinigameResult): void {
+    if (result.won) {
+      this.collectIntel(section);
+    }
+  }
+
   /** Sends the offer built in the pitch dialog. The server scores it (F-042). */
   public pitch(offer: PitchOffer): void {
     this.pitchChannel?.pitch(offer);
@@ -229,11 +249,39 @@ export class MainScene extends Container {
 
     // pointertap: a full click or tap, also fired by the accessibility layer (Enter).
     building.on("pointertap", () => {
-      this.options.onBuildingSelected?.(section);
-      this.collectIntel(section);
+      this.openBuilding(section);
     });
 
     this.world.addChild(building);
+  }
+
+  /**
+   * Plays the building's minigame when there is one, the visitor stands within reach and
+   * doesn't hold its card yet (F-070). Otherwise the interim rule applies: the CV panel
+   * opens, and up close the card is earned straight away (F-031).
+   */
+  private openBuilding(section: CvSectionId): void {
+    if (this.shouldPlayMinigame(section)) {
+      void this.minigames?.start(section);
+      return;
+    }
+
+    this.options.onBuildingSelected?.(section);
+    this.collectIntel(section);
+  }
+
+  private shouldPlayMinigame(section: CvSectionId): boolean {
+    if (!this.minigames?.hasMinigame(section)) {
+      return false;
+    }
+
+    const card = intelCardFrom(section);
+
+    if (card && this.intel.includes(card)) {
+      return false;
+    }
+
+    return isWithinIntelReach(this.player.getGridPosition(), section);
   }
 
   private createChest(): void {
