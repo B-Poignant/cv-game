@@ -335,12 +335,11 @@ at any point, in ID order, and should land before the game is shared publicly.
   `src/ui/cvSections.ts`, `shared/buildings.ts`, `src/scenes/MainScene.ts`,
   `src/game/Game.ts`, `src/style.css`
 - **Tests:** `tests/unit/content/cv.test.ts`, `tests/unit/content/format.test.ts` (durations
-  match LinkedIn), `tests/unit/ui/cvSections.test.ts`, `tests/unit/ui/CvPanel.test.ts`,
+  match LinkedIn), `tests/unit/ui/cvSections.test.ts` (level dots all the same size), `tests/unit/ui/CvPanel.test.ts`,
   `tests/unit/scenes/MainScene.test.ts` (building tap, pause), `tests/unit/shared/buildings.test.ts`;
   e2e `tests/e2e/cv-panels.spec.ts` (keyboard, mouse, closing, fits the window, scrolling)
 - **Limits:**
   - **Projects:** none listed yet.
-  - The skill level dots (● and ○) render at slightly different sizes in some fonts.
   - In the story, panels will open after a building's minigame (F-070); for now a click opens them.
 
 ### F-031 Intel cards

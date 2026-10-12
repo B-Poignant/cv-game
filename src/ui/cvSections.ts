@@ -98,10 +98,18 @@ function renderSkillsSection(cv: Cv): HTMLElement {
           ...cv.skills
             .filter((skill) => skill.category === category)
             .map((skill) => {
+              // CSS dots, not ●/○: fonts draw those two glyphs at different sizes.
               const level = el(
                 "span",
                 "cv-level",
-                "●".repeat(skill.level) + "○".repeat(5 - skill.level),
+                ...Array.from({ length: 5 }, (_, index) =>
+                  el(
+                    "span",
+                    index < skill.level
+                      ? "cv-level__dot cv-level__dot--filled"
+                      : "cv-level__dot",
+                  ),
+                ),
               );
               level.setAttribute("role", "img");
               level.setAttribute("aria-label", `niveau ${skill.level} sur 5`);

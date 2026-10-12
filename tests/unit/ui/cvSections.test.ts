@@ -97,7 +97,19 @@ describe("renderSection('skills')", () => {
     const level = php.querySelector(".cv-level")!;
     expect(level.getAttribute("role")).toBe("img");
     expect(level.getAttribute("aria-label")).toBe("niveau 5 sur 5");
-    expect(level.textContent).toBe("●●●●●");
+    expect(level.querySelectorAll(".cv-level__dot--filled")).toHaveLength(5);
+  });
+
+  it("draws a level as five same-sized dots, not glyphs that differ by font", () => {
+    const laravel = [...body.querySelectorAll(".cv-skill")].find(
+      (skill) =>
+        skill.querySelector(".cv-skill__name")?.textContent === "Laravel",
+    )!;
+    const level = laravel.querySelector(".cv-level")!;
+
+    expect(level.textContent).toBe("");
+    expect(level.querySelectorAll(".cv-level__dot")).toHaveLength(5);
+    expect(level.querySelectorAll(".cv-level__dot--filled")).toHaveLength(3);
   });
 });
 

@@ -177,8 +177,22 @@ canvas {
 }
 
 .cv-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
   color: #fbbf24;
-  letter-spacing: 0.15em;
+}
+
+.cv-level__dot {
+  box-sizing: border-box;
+  width: 0.7em;
+  height: 0.7em;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.cv-level__dot--filled {
+  background: currentColor;
 }
 
 /* Arrival panel (F-012): reuses .cv-backdrop and .cv-panel. */

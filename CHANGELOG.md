@@ -124,6 +124,8 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-030: the skill level dots were uneven: filled (●) and empty (○) dots came out at
+  different sizes depending on the font. They are now drawn in CSS, all the same size.
 - E2E: the multiplayer journeys could time out when test files ran in parallel against the
   shared room. They now run one at a time, and visitors' browser contexts always close.
 - F-011 / F-022: players and the dev could stand half a tile past the drawn map at the
