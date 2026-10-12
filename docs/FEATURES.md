@@ -57,7 +57,7 @@ it, or unscheduled).
 | [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | 💡     | 4        | —                                                                                                         | —                      |
 | **Minigames**                                       |                                          |        |          |                                                                                                           |                        |
 | [F-070](#f-070-minigame-framework)                  | Minigame framework                       | ✅     | 3        | `src/game/minigames/Minigame.ts`, `src/scenes/MinigameScene.ts`, `src/scenes/MinigameFlow.ts`             | unit                   |
-| [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | 📋     | 3        | —                                                                                                         | —                      |
+| [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | ✅     | 3        | `src/game/minigames/buzzwordCatcher/`, `src/scenes/minigames/registry.ts`                                 | unit, e2e              |
 | [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | 💡     | 4        | —                                                                                                         | —                      |
 | [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | 4        | —                                                                                                         | —                      |
 | [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | 💡     | 4        | —                                                                                                         | —                      |
@@ -78,7 +78,7 @@ playable on its own.
 | **0. Prerequisite** ✅ | shared client/server config (`shared/`)  | Map size, spawn, buildings, walkability and the dev's preferences defined once (fixed the F-001 and F-022 limits) |
 | **1. Foundations** ✅  | F-030 ✅, F-005 ✅, F-012 ✅, F-060 ✅   | Walk the CV map as a named recruiter, read sections, see the dev wander                                           |
 | **2. The chase** ✅    | F-061 ✅, F-031 ✅, F-042 ✅, F-043 ✅   | Full loop: collect intel, chase, pitch, get the contact details                                                   |
-| **3. Minigames**       | F-070 ✅, F-071                          | Intel earned by playing, starting with the Skills Park                                                            |
+| **3. Minigames** ✅    | F-070 ✅, F-071 ✅                       | Intel earned by playing, starting with the Skills Park                                                            |
 | **4. Polish**          | F-041, F-062, F-063, F-072, F-073, F-074 | Achievements, personality, the remaining minigames                                                                |
 
 Delivery & deployment (F-080 → F-084) is a separate track outside the story. It can be built
@@ -385,7 +385,8 @@ at any point, in ID order, and should land before the game is shared publicly.
   twice, bad messages, only the sender), `tests/integration/network/LocalIntel.test.ts`;
   e2e `tests/e2e/intel.spec.ts`
 - **Limits:**
-  - Interim sources: a click up close earns a card, no minigame yet (F-070). The cards
+  - Interim source: EXPERIENCE still gives its card for a click up close, until its minigame
+    (F-072) exists. SKILLS gives it for winning the buzzword catcher (F-071). The cards
     "Outils du quotidien", "Postes occupés", "Méthode", "Parcours" and "Langues" were
     proposed and kept for the minigames.
   - Cards live in the room: they're lost on reload or when the room closes (no accounts).
@@ -698,7 +699,7 @@ at any point, in ID order, and should land before the game is shared publicly.
 - **Code:** `src/game/minigames/Minigame.ts`, `src/scenes/MinigameScene.ts`,
   `src/scenes/MinigameFlow.ts`, `src/scenes/minigames/registry.ts`, `src/scenes/MainScene.ts`,
   `src/game/Game.ts`
-- **Tests:** `tests/unit/scenes/MinigameScene.test.ts` (board size on desktop and phone, theme,
+- **Tests:** e2e `tests/e2e/minigames.spec.ts` (up close, Escape, panel, no card), `tests/unit/scenes/MinigameScene.test.ts` (board size on desktop and phone, theme,
   frames, result and cleanup, only the first end counts, Escape, one at a time, resize,
   destroy), `tests/unit/scenes/MinigameFlow.test.ts` (order of steps, panel after a loss,
   buildings without a minigame), `tests/unit/scenes/MainScene.test.ts` ("with a minigame":
@@ -712,13 +713,42 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ### F-071 Skills Park: buzzword catcher
 
-📋 Planned (phase 3)
+✅ Done (phase 3)
 
-- **What:** tech logos and buzzwords fall from the top. Catch the dev's real stack, dodge what
-  he dislikes and the pure buzzwords. Reach the target score before time runs out to win.
+- **What:** opening SKILLS from up close (F-070) plays it. Words fall from the top of the
+  board; a basket moved with ←/→ (Q/D, A/D) or the mouse catches them. The dev's real stack
+  scores 1 point, anything else costs 2 (never below 0). 12 points within 40 s wins the
+  "Stack principale" card (F-031); time out or Escape is a loss. The CV panel opens either way.
 - **Design:** GAME_DESIGN.md › "Skills Park: buzzword catcher".
-- **To do:** falling-item logic as pure functions (spawn, catch, score: unit tests), the scene,
-  the skill data from F-030, and an e2e test.
+- **How it works:**
+  - `catcherRules.ts` holds the rules as pure functions over a `CatcherState` whose positions
+    are fractions of the board (so a resize only rescales): `stepCatcher` moves the basket
+    (keys, or towards the pointer at the same speed), spawns a word every 0.9 s (60 % from
+    the stack), drops them and scores those reaching the basket; `catcherOutcome` says
+    playing / won / lost. Tuning values are in `CATCHER_RULES`. Long frames are capped at
+    0.1 s so a hidden tab doesn't skip the game.
+  - `items.ts` takes the words from `shared/`, so nothing is copied: to catch,
+    `DEV_PREFERENCES.stack`; to dodge, the stacks the pitch turns down (`STACK_OPTIONS` with a
+    reply: Java, Spring, Python, Django, COBOL) and a few pure buzzwords ("Synergy",
+    "Blockchain-native", "Rockstar", …).
+  - `BuzzwordCatcher` implements `Minigame`: it draws the score, time and instructions, the
+    words (all alike, in the theme's `label` colour: telling them apart is the game) and the
+    basket, reads the keyboard and `pointermove`, and calls `finish` once. `BUZZWORD_CATCHER`
+    is registered for `skills` in `MINIGAMES`.
+- **Code:** `src/game/minigames/buzzwordCatcher/catcherRules.ts`, `items.ts`,
+  `BuzzwordCatcher.ts`, `src/scenes/minigames/registry.ts`
+- **Tests:** `tests/unit/game/minigames/buzzwordCatcher/catcherRules.test.ts` (spawn, basket
+  bounds and pointer, scoring, floor at 0, misses, win, time out, frame cap, frozen when over,
+  a perfect player wins in time), `items.test.ts` (stack words are CV skills, no overlap),
+  `BuzzwordCatcher.test.ts` (HUD, theme, keys, pointer, win, loss, one end, cleanup); e2e
+  `tests/e2e/minigames.spec.ts` (play from up close, Escape, CV panel, no card)
+- **Limits:**
+  - Words are text, not logos (no image assets or trademarks to manage).
+  - The e2e test covers quitting, not winning: a win is random and needs ~20 s of play, so it
+    is covered by the unit tests (`BuzzwordCatcher`, and `MainScene` for the card).
+  - On a touch screen the basket follows a finger dragged over the board; there are no
+    on-screen buttons.
+  - Only the 8 stack words score; other CV skills (MySQL, RabbitMQ, Cypress…) don't fall.
 
 ### F-072 Experience Avenue: career timeline
 

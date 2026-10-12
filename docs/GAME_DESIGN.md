@@ -97,8 +97,8 @@ spawn as a recruiter
 
 A first visit should take about **5 minutes** to reach a reward.
 
-**Until the minigames exist (F-070):** opening a building from up close (2 tiles at most)
-gives its intel card, and the chest gives the secret one. EXPERIENCE and SKILLS give a card
+**Until every minigame exists (F-070):** SKILLS plays its buzzword catcher (F-071); the
+other buildings, opened from up close (2 tiles at most), give their intel card directly, and the chest gives the secret one. EXPERIENCE and SKILLS give a card
 each (EDUCATION gives none yet), so with the chest that's exactly the 3 cards needed to pitch.
 
 ## Minigames (F-070 framework)

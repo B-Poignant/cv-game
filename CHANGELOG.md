@@ -8,6 +8,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Added
 
+- F-071: Skills Park's buzzword catcher, the first minigame. Catch the dev's real stack
+  and dodge the stacks he turns down and the pure buzzwords, with ←/→ (Q/D, A/D) or the
+  mouse; 12 points in 40 s wins the "Stack principale" card.
 - F-070: the minigame framework. A building with a minigame plays it when opened from up
   close (Escape quits), then shows its CV panel, win or lose; a win earns the intel card. The
   first minigame comes with F-071. The unused `BootScene` and `CvScene` placeholders are gone.

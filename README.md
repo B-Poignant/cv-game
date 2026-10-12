@@ -14,9 +14,10 @@ is, and the winner gets his real contact details and CV. The full story and rule
 > **Status: work in progress.** Today you pick a recruiter name, walk a map split into CV districts with
 > collisions, live multiplayer and colour themes, open the buildings to read the CV, and
 > chase Ben, the dev, who wanders around and runs away. Opening a building up close (or
-> finding the chest) earns an intel card about him, and with 3 cards you can catch him and
-> pitch him a job; a good pitch shows his LinkedIn. The rest of the story (minigames, the
-> CV download, achievements) is designed and on the roadmap, but not built yet.
+> finding the chest) earns an intel card about him (the Skills Park makes you win its
+> buzzword catcher first), and with 3 cards you can catch him and
+> pitch him a job; a good pitch shows his contact details and CV. The rest of the story (the other
+> minigames, achievements) is designed and on the roadmap, but not built yet.
 
 ## Features
 
@@ -35,6 +36,8 @@ is, and the winner gets his real contact details and CV. The full story and rule
 - Open a building to read the real CV: experiences, skills, education and languages
 - Intel cards: open a building from up close, or find the chest, to collect facts about
   the dev (shown top-right)
+- Minigames: the Skills Park plays a buzzword catcher (catch the dev's stack, dodge the
+  buzzwords) to win its card
 - Catch Ben with 3 intel cards and pitch him an offer (stack, work mode, role, opening
   line); the server scores it against his real preferences, and a good pitch reveals how
   to contact him

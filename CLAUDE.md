@@ -36,7 +36,8 @@ src/
                      IsometricConverter (grid <-> screen), GridPosition
     entities/        world objects (Building, Chest, DistrictGround)
     factories/       builders for entities from config
-    minigames/       the Minigame contract every minigame implements (F-070)
+    minigames/       the Minigame contract every minigame implements (F-070), and one
+                     folder per minigame (buzzwordCatcher/: rules, words, view, F-071)
   scenes/            Pixi Containers: MainScene (world), MinigameScene + MinigameFlow (F-070),
                      minigames/registry.ts (which building runs which minigame)
   ui/                HTML UI over the canvas: CvPanel + cvSections, ThemeButton, IdentityPanel,
