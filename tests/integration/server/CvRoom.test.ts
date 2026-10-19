@@ -406,7 +406,6 @@ describe("CvRoom", () => {
     it.each([
       { label: "an unknown source", message: { source: "bank" } },
       { label: "a card id instead of a source", message: { source: "stack" } },
-      { label: "a building with no card", message: { source: "education" } },
       { label: "no source", message: {} },
       { label: "not an object", message: "skills" },
     ])("ignores $label", async ({ message }) => {
@@ -430,6 +429,74 @@ describe("CvRoom", () => {
       await room.waitForNextMessage();
 
       expect([...room.state.players.get(other.sessionId)!.intel]).toEqual([]);
+    });
+  });
+
+  // F-063. Math.random is fixed at 0.1: each email flies along the first recruiter's row,
+  // from the left edge.
+  describe("spam emails", () => {
+    /** A recruiter on an open row, near the left edge where the emails come in. */
+    async function inTheLane() {
+      vi.stubEnv("SPAM_FLIES", "true");
+      vi.stubEnv("DEV_WANDERS", "false");
+      vi.spyOn(Math, "random").mockReturnValue(0.1);
+      const joined = await joinRoom();
+      joined.player().column = 1;
+      joined.player().row = SPAWN.row;
+      return joined;
+    }
+
+    it("doesn't fly any with SPAM_FLIES=false (e2e and other tests)", async () => {
+      const { room } = await joinRoom();
+
+      for (let tick = 0; tick < 30; tick += 1) {
+        await room.waitForNextTimestep();
+      }
+
+      expect(room.state.emails.size).toBe(0);
+    });
+
+    it("syncs flying emails to clients", async () => {
+      vi.stubEnv("SPAM_FLIES", "true");
+      vi.spyOn(Math, "random").mockReturnValue(0.1);
+      const { client, player } = await joinRoom();
+      player().row = 2;
+
+      await vi.waitFor(() => expect(client.state.emails.size).toBe(1), {
+        timeout: 3000,
+      });
+    });
+
+    it("slows down a recruiter an email hits, then lets them recover", async () => {
+      const { client, player } = await inTheLane();
+
+      await vi.waitFor(() => expect(player().slowed).toBe(true), {
+        timeout: 3000,
+      });
+      await vi.waitFor(() =>
+        expect(client.state.players.get(client.sessionId)?.slowed).toBe(true),
+      );
+      await vi.waitFor(() => expect(player().slowed).toBe(false), {
+        timeout: 4000,
+      });
+    });
+
+    // The server is authoritative: a client that ignores the slowdown is held back.
+    it("rejects moves faster than the slowed speed", async () => {
+      const { client, player } = await inTheLane();
+      await vi.waitFor(() => expect(player().slowed).toBe(true), {
+        timeout: 3000,
+      });
+      const start = player().column;
+
+      // 4 tiles in 0.8 s: full speed allows it all, the slowed speed about 2.5 tiles.
+      for (let step = 1; step <= 16; step += 1) {
+        client.send("move", { column: start + step * 0.25, row: SPAWN.row });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(player().column - start).toBeLessThan(3.5);
     });
   });
 

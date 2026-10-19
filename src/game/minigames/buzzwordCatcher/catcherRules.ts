@@ -5,7 +5,7 @@
 /** Tuning values. Exported so tests can reason about them. */
 export const CATCHER_RULES = {
   durationSeconds: 40,
-  targetScore: 12,
+  targetScore: 6,
   pointsPerCatch: 1,
   /** Catching a word to dodge costs this many points. */
   pointsPerMistake: 2,

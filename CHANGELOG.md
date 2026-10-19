@@ -8,9 +8,21 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Added
 
+- F-041: five achievements ("Hired the dev", "Read the whole CV", "Found the chest", "Hired in
+  under 2 minutes", "Pitched like a pro") with a toast, a chat message, and a 🏆 list under the
+  theme button. Unlocks are kept in the browser.
+- F-062: Ben speaks. A bubble above his head (also posted to the chat log) taunts a recruiter
+  who comes close, and he mutters to himself when nobody is around.
+- F-063: recruiter spam. Up to two "exciting opportunity" emails fly across the map; one that
+  hits you halves your speed for 2 s. The server runs them and enforces the slowdown.
+  `SPAM_FLIES=false` turns them off.
+- F-072: Experience Avenue's career timeline. Tap five jobs from the CV from oldest to newest
+  (3 mistakes or 60 s loses); winning earns the "Séniorité" card.
+- F-074: Education Campus's quiz. Three questions built from the CV, 2 right answers win a new
+  fourth intel card, "Formation & langues". Every building now has a minigame.
 - F-071: Skills Park's buzzword catcher, the first minigame. Catch the dev's real stack
   and dodge the stacks he turns down and the pure buzzwords, with ←/→ (Q/D, A/D) or the
-  mouse; 12 points in 40 s wins the "Stack principale" card.
+  mouse; 6 points in 40 s wins the "Stack principale" card.
 - F-070: the minigame framework. A building with a minigame plays it when opened from up
   close (Escape quits), then shows its CV panel, win or lose; a win earns the intel card. The
   first minigame comes with F-071. The unused `BootScene` and `CvScene` placeholders are gone.
@@ -86,6 +98,10 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Changed
 
+- F-071: the buzzword catcher needs 6 points to win, down from 12.
+- F-031: there are now four intel cards, so the inventory counts "Intel n/3" up to the 3 needed
+  to pitch and keeps listing the others.
+- F-070: the answers of the choice-based minigames are accessible buttons (Tab + Enter).
 - F-031: the intel inventory now sits under dialogs: on a phone it covered their title.
 - F-040: the chest gives the secret intel card instead of logging "Achievement unlocked!".
   Its position moved to `shared/world.ts` (`CHEST_POSITION`).

@@ -65,7 +65,10 @@ export class IntelInventory {
   }
 
   private render(): void {
-    this.heading.textContent = `Intel ${this.cards.length}/${INTEL_NEEDED_TO_PITCH}`;
+    // Progress towards a pitch: there are more cards than needed (F-074), so it stops at 3/3.
+    const counted = Math.min(this.cards.length, INTEL_NEEDED_TO_PITCH);
+
+    this.heading.textContent = `Intel ${counted}/${INTEL_NEEDED_TO_PITCH}`;
     this.empty.hidden = this.cards.length > 0;
     this.list.replaceChildren(
       ...this.cards.map((card) => this.renderCard(card)),

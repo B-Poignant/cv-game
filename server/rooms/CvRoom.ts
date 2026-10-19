@@ -26,10 +26,12 @@ import {
   scorePitch,
 } from "../../shared/pitch";
 import { normalizeIdentity, randomRecruiter } from "../../shared/recruiters";
-import { CvRoomState, DevState, PlayerState } from "./CvRoomState";
+import { SPAM } from "../../shared/spam";
+import { CvRoomState, DevState, EmailState, PlayerState } from "./CvRoomState";
 import { DevWanderer } from "./DevWanderer";
 import { MoveBudget } from "./MoveBudget";
 import { PitchTracker } from "./PitchTracker";
+import { SpamStorm } from "./SpamStorm";
 
 /** Longest single move, in tiles: also how much movement a client can save up. */
 const MAX_MOVE_DISTANCE = 1;
@@ -49,6 +51,16 @@ const PITCH_NOTICE_MS = 3000;
 /** `DEV_WANDERS=false` keeps the dev in place (e2e tests compare screenshots). */
 function devWanders(): boolean {
   return process.env.DEV_WANDERS !== "false";
+}
+
+/** `SPAM_FLIES=false` turns the spam hazard off (F-063): e2e and most integration tests. */
+function spamFlies(): boolean {
+  return process.env.SPAM_FLIES !== "false";
+}
+
+/** How fast a recruiter's move budget refills: their speed, plus headroom for timing. */
+function refillRate(slowed: boolean): number {
+  return PLAYER_SPEED * SPEED_TOLERANCE * (slowed ? SPAM.slowFactor : 1);
 }
 
 interface MoveMessage {
@@ -81,6 +93,8 @@ export class CvRoom extends Room {
     random: Math.random,
   });
 
+  private readonly spamStorm = new SpamStorm({ random: Math.random });
+
   public onCreate(): void {
     const dev = new DevState();
 
@@ -105,9 +119,17 @@ export class CvRoom extends Room {
       this.pitches.cancel(client.sessionId, performance.now());
     });
 
-    if (devWanders()) {
+    const isDevWandering = devWanders();
+    const isSpamFlying = spamFlies();
+
+    if (isDevWandering || isSpamFlying) {
       this.setTimestep((deltaMs) => {
-        this.moveDev(deltaMs / 1000);
+        if (isDevWandering) {
+          this.moveDev(deltaMs / 1000);
+        }
+        if (isSpamFlying) {
+          this.updateSpam(deltaMs / 1000);
+        }
       }, SIMULATION_INTERVAL_MS);
     }
   }
@@ -121,15 +143,12 @@ export class CvRoom extends Room {
     player.company = identity.company;
     player.column = PLAYER_SPAWN.column;
     player.row = PLAYER_SPAWN.row;
+    player.slowed = false;
 
     this.state.players.set(client.sessionId, player);
     this.moveBudgets.set(
       client.sessionId,
-      new MoveBudget(
-        MAX_MOVE_DISTANCE,
-        PLAYER_SPEED * SPEED_TOLERANCE,
-        performance.now(),
-      ),
+      new MoveBudget(MAX_MOVE_DISTANCE, refillRate(false), performance.now()),
     );
 
     console.log(`${identity.name} (${client.sessionId}) joined the CV room`);
@@ -143,6 +162,63 @@ export class CvRoom extends Room {
     this.state.players.delete(client.sessionId);
     this.moveBudgets.delete(client.sessionId);
     this.pitches.remove(client.sessionId);
+    this.spamStorm.remove(client.sessionId);
+  }
+
+  /**
+   * Flies the spam emails (F-063) and slows down the recruiters they hit: their move budget
+   * refills slower, and `slowed` tells their client to walk slower too.
+   */
+  private updateSpam(deltaSeconds: number): void {
+    const targets = [...this.state.players.entries()].map(([id, player]) => ({
+      id,
+      column: player.column,
+      row: player.row,
+    }));
+    const changes = this.spamStorm.update(deltaSeconds, targets);
+    const now = performance.now();
+
+    for (const id of changes.slowed) {
+      this.setSlowed(id, true, now);
+    }
+    for (const id of changes.recovered) {
+      this.setSlowed(id, false, now);
+    }
+
+    this.syncEmails();
+  }
+
+  private setSlowed(sessionId: string, slowed: boolean, nowMs: number): void {
+    const player = this.state.players.get(sessionId);
+
+    if (player) {
+      player.slowed = slowed;
+    }
+    this.moveBudgets.get(sessionId)?.setRefillRate(refillRate(slowed), nowMs);
+  }
+
+  private syncEmails(): void {
+    const emails = this.state.emails;
+    const flying = new Map(
+      this.spamStorm.emails.map((email) => [String(email.id), email]),
+    );
+
+    for (const key of [...emails.keys()]) {
+      if (!flying.has(key)) {
+        emails.delete(key);
+      }
+    }
+
+    for (const [key, email] of flying) {
+      const state = emails.get(key) ?? new EmailState();
+
+      state.id = email.id;
+      state.column = email.column;
+      state.row = email.row;
+      if (!emails.has(key)) {
+        emails.set(key, state);
+      }
+    }
   }
 
   /** The dev wanders (F-060) and runs from nearby recruiters (F-061). Only the server moves him. */

@@ -10,10 +10,13 @@ import {
 } from "../../shared/intel";
 import type { PitchEvent, PitchOffer } from "../../shared/pitch";
 import type { RecruiterIdentity } from "../../shared/recruiters";
+import { SPAM } from "../../shared/spam";
 import { CHEST_POSITION, MAP_SIZE } from "../../shared/world";
+import { DEV_BUBBLE_LINES } from "../config/devLines";
 import type { Theme } from "../config/themes";
 import type { CvSectionId } from "../domain/Cv";
 import { Camera, type MapBounds } from "../game/Camera";
+import { DevChatter } from "../game/DevChatter";
 import { GameMap } from "../game/Map";
 import { Player } from "../game/Player";
 import type { Building } from "../game/entities/Building";
@@ -26,6 +29,7 @@ import { MultiplayerClient } from "../network/MultiplayerClient";
 import { PitchChannel } from "../network/PitchChannel";
 import { RemoteDev } from "../network/RemoteDev";
 import { RemotePlayersManager } from "../network/RemotePlayersManager";
+import { RemoteSpam } from "../network/RemoteSpam";
 
 export interface MainSceneOptions {
   /** Called when the visitor opens a building (click, tap or Enter). */
@@ -36,6 +40,10 @@ export interface MainSceneOptions {
   onIntelOutOfReach?: (source: IntelSource) => void;
   /** Called when the server opens the pitch dialog, refuses a pitch or scores one (F-042). */
   onPitchEvent?: (event: PitchEvent) => void;
+  /** Called with each line Ben says in a speech bubble to this visitor (F-062). */
+  onDevLine?: (line: string) => void;
+  /** Called when a spam email slows the visitor down, and when they recover (F-063). */
+  onSlowedChange?: (slowed: boolean) => void;
 }
 
 /** Starts buildings' minigames (F-070): `MinigameFlow`. */
@@ -55,11 +63,13 @@ export class MainScene extends Container {
   private readonly camera: Camera;
 
   private readonly multiplayerClient = new MultiplayerClient();
+  private readonly devChatter = new DevChatter(DEV_BUBBLE_LINES);
 
   private remotePlayersManager?: RemotePlayersManager;
   private remoteDev?: RemoteDev;
   private localIntel?: LocalIntel;
   private pitchChannel?: PitchChannel;
+  private remoteSpam?: RemoteSpam;
   private intel: IntelCardId[] = [];
   private theme?: Theme;
 
@@ -147,10 +157,20 @@ export class MainScene extends Container {
       this.pitchChannel = new PitchChannel(room, (event) => {
         this.options.onPitchEvent?.(event);
       });
+      this.remoteSpam = new RemoteSpam(
+        this.world,
+        this.map.converter,
+        room,
+        (slowed) => {
+          this.player.setSpeedFactor(slowed ? SPAM.slowFactor : 1);
+          this.options.onSlowedChange?.(slowed);
+        },
+      );
 
       if (this.theme) {
         this.remotePlayersManager.applyTheme(this.theme);
         this.remoteDev.applyTheme(this.theme);
+        this.remoteSpam.applyTheme(this.theme);
       }
     } catch (error) {
       console.error("Multiplayer initialization failed", error);
@@ -318,6 +338,7 @@ export class MainScene extends Container {
     this.player.applyTheme(theme);
     this.remotePlayersManager?.applyTheme(theme);
     this.remoteDev?.applyTheme(theme);
+    this.remoteSpam?.applyTheme(theme);
 
     // Exposes the current theme to CSS and e2e tests.
     document.documentElement.dataset.theme = theme.id;
@@ -332,9 +353,31 @@ export class MainScene extends Container {
   public update(deltaSeconds: number): void {
     if (!this.paused) {
       this.player.update(deltaSeconds);
+      this.updateDevChatter(deltaSeconds);
     }
 
+    this.remoteDev?.update(deltaSeconds);
     this.updateDepth();
+  }
+
+  /** Ben taunts the visitor in a bubble (F-062), once his position has arrived. */
+  private updateDevChatter(deltaSeconds: number): void {
+    const devPosition = this.remoteDev?.gridPosition;
+
+    if (!devPosition) {
+      return;
+    }
+
+    const line = this.devChatter.update(
+      deltaSeconds,
+      devPosition,
+      this.player.getGridPosition(),
+    );
+
+    if (line) {
+      this.remoteDev?.say(line);
+      this.options.onDevLine?.(line);
+    }
   }
 
   private updateDepth(): void {
@@ -352,6 +395,7 @@ export class MainScene extends Container {
     this.remoteDev?.destroy();
     this.localIntel?.destroy();
     this.pitchChannel?.destroy();
+    this.remoteSpam?.destroy();
 
     void this.multiplayerClient.disconnect();
 

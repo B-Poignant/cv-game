@@ -3,7 +3,7 @@ import { Text } from "pixi.js";
 import { describe, expect, it } from "vitest";
 
 import { DEFAULT_THEME, THEMES } from "../../../../src/config/themes";
-import { Dev } from "../../../../src/game/entities/Dev";
+import { BUBBLE_SECONDS, Dev } from "../../../../src/game/entities/Dev";
 import { IsometricConverter } from "../../../../src/game/IsometricConverter";
 
 const converter = new IsometricConverter(64, 32);
@@ -39,5 +39,38 @@ describe("Dev", () => {
     expect({ x: dev.x, y: dev.y }).toEqual(
       converter.toScreen({ column: 3, row: 7 }),
     );
+  });
+
+  // F-062
+  describe("speech bubble", () => {
+    it("has none until he speaks", () => {
+      const dev = new Dev("Ben", converter);
+
+      expect(dev.speech).toBeUndefined();
+    });
+
+    it("shows what he says, then hides it after a while", () => {
+      const dev = new Dev("Ben", converter);
+
+      dev.say("Just one more commit…");
+      dev.update(BUBBLE_SECONDS / 2);
+
+      expect(dev.speech).toBe("Just one more commit…");
+
+      dev.update(BUBBLE_SECONDS / 2);
+
+      expect(dev.speech).toBeUndefined();
+    });
+
+    it("keeps a new line up for the full time", () => {
+      const dev = new Dev("Ben", converter);
+      dev.say("First");
+      dev.update(BUBBLE_SECONDS - 0.1);
+
+      dev.say("Second");
+      dev.update(BUBBLE_SECONDS - 0.1);
+
+      expect(dev.speech).toBe("Second");
+    });
   });
 });

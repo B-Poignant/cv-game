@@ -7,6 +7,7 @@ import { IntelInventory } from "../../../src/ui/IntelInventory";
 const TEXTS: Record<IntelCardId, { title: string; text: string }> = {
   stack: { title: "Stack principale", text: "PHP" },
   lead: { title: "Séniorité", text: "4 ans de lead" },
+  education: { title: "Formation & langues", text: "BTS" },
   "work-mode": { title: "Critère éliminatoire", text: "<b>sur site</b>" },
 };
 
@@ -53,6 +54,16 @@ describe("IntelInventory", () => {
         inventory.element.getAttribute("aria-labelledby")!,
       )?.textContent,
     ).toBe("Intel 1/3");
+  });
+
+  // F-074: there are more cards than needed, so the count stops at what a pitch needs.
+  it("stops counting at the cards needed to pitch", () => {
+    const { inventory, title, cards } = createInventory();
+
+    inventory.update(["stack", "lead", "education", "work-mode"]);
+
+    expect(title()).toBe("Intel 3/3");
+    expect(cards()).toHaveLength(4);
   });
 
   it("explains how to get cards while there are none", () => {

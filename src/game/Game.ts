@@ -4,10 +4,12 @@ import { DEFAULT_THEME, THEMES } from "../config/themes";
 import { MainScene } from "../scenes/MainScene";
 import { MinigameFlow } from "../scenes/MinigameFlow";
 import { MinigameScene } from "../scenes/MinigameScene";
-import { MINIGAMES } from "../scenes/minigames/registry";
+import { createMinigames } from "../scenes/minigames/registry";
 import { CV } from "../content/cv";
 import { CONTACT } from "../content/contact";
 import { intelCardText } from "../content/intel";
+import { AchievementsPanel } from "../ui/AchievementsPanel";
+import { AchievementToast } from "../ui/AchievementToast";
 import { ChatLog } from "../ui/ChatLog";
 import { CvPanel } from "../ui/CvPanel";
 import { IdentityPanel } from "../ui/IdentityPanel";
@@ -15,6 +17,7 @@ import { IntelInventory } from "../ui/IntelInventory";
 import { PitchDialog } from "../ui/PitchDialog";
 import { PitchFlow } from "../ui/PitchFlow";
 import { ThemeButton } from "../ui/ThemeButton";
+import { AchievementTracker, browserStorage } from "./AchievementTracker";
 import { ThemeCycle } from "./ThemeCycle";
 
 export class Game {
@@ -27,6 +30,8 @@ export class Game {
   private intelInventory?: IntelInventory;
   private chatLog?: ChatLog;
   private pitchDialog?: PitchDialog;
+  private achievementsPanel?: AchievementsPanel;
+  private achievementToast?: AchievementToast;
 
   private started = false;
   private destroyed = false;
@@ -58,12 +63,29 @@ export class Game {
       (text) => chatLog.post({ text }),
     );
     this.intelInventory = intelInventory;
+    const achievements = this.createAchievements(chatLog);
     this.mainScene = new MainScene(this.app.renderer, {
       onBuildingSelected: (section) => this.cvPanel?.open(section),
-      onIntelChange: (cards) => intelInventory.update(cards),
+      onIntelChange: (cards) => {
+        intelInventory.update(cards);
+        achievements.intelChanged(cards);
+      },
       onIntelOutOfReach: () =>
         chatLog.post({ text: "Get closer to collect its intel." }),
-      onPitchEvent: (event) => pitchFlow.handle(event),
+      onPitchEvent: (event) => {
+        pitchFlow.handle(event);
+        if (event.type === "result") {
+          achievements.pitched(event.hired);
+        }
+      },
+      onDevLine: (line) => chatLog.post({ speaker: "Ben", text: line }),
+      onSlowedChange: (slowed) => {
+        if (slowed) {
+          chatLog.post({
+            text: "Spam! An exciting opportunity slows you down.",
+          });
+        }
+      },
     });
     const minigameScene = new MinigameScene(this.app.renderer);
     this.minigameScene = minigameScene;
@@ -71,7 +93,7 @@ export class Game {
       new MinigameFlow(
         this.mainScene,
         minigameScene,
-        MINIGAMES,
+        createMinigames(CV),
         this.cvPanel,
         chatLog,
       ),
@@ -83,7 +105,13 @@ export class Game {
       (message) => chatLog.post(message),
       CONTACT,
     );
-    this.cvPanel.onOpenChange((open) => this.mainScene?.setPaused(open));
+    this.cvPanel.onOpenChange((open) => {
+      this.mainScene?.setPaused(open);
+      const section = this.cvPanel?.currentSection;
+      if (open && section) {
+        achievements.sectionOpened(section);
+      }
+    });
 
     this.app.stage.addChild(this.mainScene, minigameScene);
 
@@ -102,9 +130,25 @@ export class Game {
     this.mainScene.setPaused(true);
     this.identityPanel = new IdentityPanel();
     void this.identityPanel.choose().then((identity) => {
+      achievements.arrived();
       this.mainScene?.join(identity);
       this.mainScene?.setPaused(false);
     });
+  }
+
+  /** Achievements (F-041): kept in this browser, announced by a toast and in the chat log. */
+  private createAchievements(chatLog: ChatLog): AchievementTracker {
+    const tracker = new AchievementTracker(browserStorage());
+    const toast = new AchievementToast();
+
+    this.achievementToast = toast;
+    this.achievementsPanel = new AchievementsPanel(tracker);
+    tracker.onUnlock((achievement) => {
+      toast.show(achievement);
+      chatLog.post({ text: `Achievement unlocked: ${achievement.title}` });
+    });
+
+    return tracker;
   }
 
   private update = (ticker: Ticker): void => {
@@ -138,6 +182,12 @@ export class Game {
 
     this.pitchDialog?.destroy();
     this.pitchDialog = undefined;
+
+    this.achievementsPanel?.destroy();
+    this.achievementsPanel = undefined;
+
+    this.achievementToast?.destroy();
+    this.achievementToast = undefined;
 
     this.minigameScene?.destroy(true);
     this.minigameScene = undefined;

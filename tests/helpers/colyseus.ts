@@ -1,5 +1,5 @@
 import { ColyseusTestServer } from "@colyseus/testing";
-import { afterAll, afterEach, beforeAll } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 
 import server from "../../server/app.config";
 
@@ -14,6 +14,9 @@ export function testPort(): number {
 /**
  * Boots the real Colyseus server once per test file and disposes rooms
  * between tests. Call at the top level of a `describe` block.
+ *
+ * Rooms are created with the spam hazard off (F-063), so random emails can't slow a test's
+ * moves down: a test about spam turns it on with `vi.stubEnv("SPAM_FLIES", "true")`.
  */
 export function useColyseusServer(): () => ColyseusTestServer {
   let colyseus: ColyseusTestServer | undefined;
@@ -23,6 +26,10 @@ export function useColyseusServer(): () => ColyseusTestServer {
     // given a Server instance and always listens on 2568.
     await server.listen(testPort());
     colyseus = new ColyseusTestServer(server);
+  });
+
+  beforeEach(() => {
+    vi.stubEnv("SPAM_FLIES", "false");
   });
 
   afterEach(async () => {

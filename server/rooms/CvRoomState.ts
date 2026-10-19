@@ -8,6 +8,8 @@ export const PlayerState = schema(
     row: t.number(),
     /** Intel card ids earned so far (F-031), in the order they were earned. */
     intel: t.array("string"),
+    /** Hit by a spam email (F-063): moves at `SPAM.slowFactor` of the speed for a while. */
+    slowed: t.boolean(),
   },
   "PlayerState",
 );
@@ -26,10 +28,24 @@ export const DevState = schema(
 
 export type DevState = SchemaType<typeof DevState>;
 
+/** A flying spam email (F-063), moved by the server only. Its id picks its subject. */
+export const EmailState = schema(
+  {
+    id: t.number(),
+    column: t.number(),
+    row: t.number(),
+  },
+  "EmailState",
+);
+
+export type EmailState = SchemaType<typeof EmailState>;
+
 export const CvRoomState = schema(
   {
     players: t.map(PlayerState),
     dev: DevState,
+    /** Keyed by the email's id (F-063). */
+    emails: t.map(EmailState),
   },
   "CvRoomState",
 );

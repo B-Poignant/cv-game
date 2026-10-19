@@ -37,13 +37,15 @@ src/
     entities/        world objects (Building, Chest, DistrictGround)
     factories/       builders for entities from config
     minigames/       the Minigame contract every minigame implements (F-070), and one
-                     folder per minigame (buzzwordCatcher/: rules, words, view, F-071)
+                     folder per minigame (buzzwordCatcher/, careerTimeline/, educationQuiz/: rules + view,
+                     F-071/072/074), ChoiceButton + shuffle shared by the quiz-like ones
   scenes/            Pixi Containers: MainScene (world), MinigameScene + MinigameFlow (F-070),
                      minigames/registry.ts (which building runs which minigame)
   ui/                HTML UI over the canvas: CvPanel + cvSections, ThemeButton, IdentityPanel,
-                     IntelInventory, ChatLog, PitchDialog + PitchFlow + rewardSection
+                     IntelInventory, ChatLog, PitchDialog + PitchFlow + rewardSection, AchievementsPanel +
+                     AchievementToast (F-041)
   domain/            plain CV data types (Experience, Skill, Project, Education), no Pixi
-  config/            client-only static data (themes.ts palettes)
+  config/            client-only static data (themes.ts palettes, achievements.ts, devLines.ts)
   content/           cv.ts: the real CV (French), typed by domain/Cv.ts; intel.ts: card texts;
                      contact.ts: the owner's contact details (F-043)
   network/           Colyseus client, remote player + dev sync, LocalIntel (own cards),
@@ -56,14 +58,15 @@ shared/              imported by BOTH client and server: no Pixi, no DOM, no Nod
   recruiters.ts      recruiter identities: defaults + validation (F-012)
   intel.ts           intel cards: ids, sources, reach (F-031)
   pitch.ts           pitch options, the dev's replies, scoring (F-042)
+  spam.ts            the recruiter-spam emails: tuning + subjects (F-063)
   CollisionMap.ts, grid.ts
 server/
   index.ts           listens on PORT (default 2567)
   app.config.ts      room registry + HTTP hook
   http.ts            /health and the built client (dist/)
   rooms/             CvRoom (move validation, dev loop, catch + pitch), MoveBudget (speed
-                     limit), DevWanderer + flee (the dev's movement), PitchTracker (who may
-                     pitch, cooldowns), CvRoomState (schema)
+                     limit), DevWanderer + flee (the dev's movement), SpamStorm (the spam emails),
+                     PitchTracker (who may pitch, cooldowns), CvRoomState (schema)
 tests/
   unit/              mirrors src/ (pure logic, Pixi classes via happy-dom)
   integration/       real Colyseus server + real clients

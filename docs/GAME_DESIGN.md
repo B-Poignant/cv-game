@@ -73,8 +73,8 @@ on the ground, and its building holds that section's minigame.
 | ----------------- | ---------- | ------------------------ | ------------------------------------------ |
 | Skills Park       | Skills     | Buzzword catcher (F-071) | Core stack, favourite tools, disliked tech |
 | Experience Avenue | Experience | Career timeline (F-072)  | Seniority, industries, role types          |
-| Projects Lab      | Projects   | Project match-up (F-073) | What he likes building                     |
-| Education Campus  | Education  | Quiz (F-074)             | Background, languages spoken               |
+| Projects Lab      | Projects   | Project match-up (F-073) | What he likes building (not built)         |
+| Education Campus  | Education  | Quiz (F-074)             | Background and languages spoken            |
 | Hidden            | —          | The chest (F-040)        | Secret card: a deal-breaker or a soft spot |
 
 The map is 24×24, one quarter per district: Skills Park (top-left), Experience Avenue
@@ -97,9 +97,10 @@ spawn as a recruiter
 
 A first visit should take about **5 minutes** to reach a reward.
 
-**Until every minigame exists (F-070):** SKILLS plays its buzzword catcher (F-071); the
-other buildings, opened from up close (2 tiles at most), give their intel card directly, and the chest gives the secret one. EXPERIENCE and SKILLS give a card
-each (EDUCATION gives none yet), so with the chest that's exactly the 3 cards needed to pitch.
+**Today:** SKILLS, EXPERIENCE and EDUCATION each play their minigame (F-071, F-072, F-074)
+from up close (2 tiles at most) and give a card for a win, and the chest gives the secret one.
+That's 4 cards for the 3 needed to pitch, so a recruiter can skip one. The Projects Lab
+(F-073) waits for projects in the CV.
 
 ## Minigames (F-070 framework)
 
@@ -112,21 +113,32 @@ section**: winning it requires noticing the real content. When it ends, the sect
 - **Goal:** tech logos and buzzwords fall from the top. Catch the ones in the dev's real
   stack and dodge the ones he dislikes, plus pure buzzwords ("synergy", "blockchain-native").
 - **Controls:** ←/→ (or Q/D, A/D) move a basket.
-- **Win:** reach the target score before time runs out. Catching a disliked item costs points.
+- **Win:** reach the target score (6 points) before time runs out. Catching a disliked item costs points.
 - **Teaches:** the real skill list, and what he doesn't want.
 - **Intel:** "Core stack: …".
 
-### Experience Avenue: career timeline (F-072, idea)
+### Experience Avenue: career timeline (F-072)
 
-Drag job cards into chronological order. Teaches the career path and seniority.
+Five jobs from the CV are shown shuffled; tap them from oldest to newest. Three mistakes or
+60 s loses. Built as taps rather than dragging, so the cards are accessible buttons (Tab +
+Enter). Teaches the career path and seniority. **Intel:** "Séniorité".
 
 ### Projects Lab: match-up (F-073, idea)
 
 Match each project to its technology and description. Teaches what he builds.
 
-### Education Campus: quiz (F-074, idea)
+### Education Campus: quiz (F-074)
 
-Three quick multiple-choice questions about the education section. Teaches background and languages.
+Three quick multiple-choice questions about the education section: the diploma, the school
+and the languages, with joke wrong answers. Two right answers win, and the right answer shows
+after each pick. Teaches background and languages. **Intel:** "Formation & langues".
+
+## Hazards (F-063)
+
+Flying "exciting opportunity" emails cross the map, up to two at a time, each aimed along a
+recruiter's row or column. One that hits a recruiter slows them to half speed for 2 seconds:
+a nuisance to dodge, not a punishment (the owner chose "mild"). The server runs them, so
+everyone sees the same emails and the slowdown is enforced.
 
 ## The pitch (F-042)
 
@@ -201,8 +213,6 @@ chest", "Hired in under 2 minutes", "Pitched like a pro" (first try).
 
 ## Ideas not yet scheduled
 
-- Speech bubbles for the dev (F-062) and recruiter-spam hazards: flying "exciting
-  opportunity" emails that slow you down (F-063).
 - A minimap showing districts and the dev's last known position.
 - Recruiter emotes ("👋", "📞 quick call?").
 - A leaderboard of fastest hires (needs server-side checks of minigame results first).

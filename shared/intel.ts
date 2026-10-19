@@ -12,6 +12,7 @@ export type IntelSource = CvSectionId | "chest";
 export const INTEL_CARDS = [
   { id: "stack", source: "skills" },
   { id: "lead", source: "experience" },
+  { id: "education", source: "education" },
   { id: "work-mode", source: "chest" },
 ] as const satisfies readonly { id: string; source: IntelSource }[];
 

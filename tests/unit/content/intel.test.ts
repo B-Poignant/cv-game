@@ -61,6 +61,14 @@ describe("intel card texts", () => {
     );
   });
 
+  // F-074
+  it("lists the diplomas and the languages from the CV", () => {
+    expect(intelCardText("education", CV, NOW)).toEqual({
+      title: "Formation & langues",
+      text: "BTS, Informatique | option développement · Français, Anglais",
+    });
+  });
+
   // Dev: Locasun Apr 2012 → E-monsite Sep 2018 (78 months) + BoondManager Jul 2023 → now
   // (40). Lead: E-monsite Oct 2018 → PERI-G Jul 2023, back to back (58).
   it("adds up the dev and lead years from the CV", () => {

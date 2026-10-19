@@ -68,4 +68,28 @@ describe("MoveBudget", () => {
     // 10 seconds: at most the starting budget plus 10 s × RATE.
     expect(accepted).toBeLessThanOrEqual(CAPACITY + 10 * RATE + step);
   });
+
+  // F-063: a spam hit slows a recruiter down.
+  describe("changing the refill rate", () => {
+    it("refills slower from then on", () => {
+      const budget = createBudget();
+      budget.tryMove(1, 0);
+
+      budget.setRefillRate(RATE / 2, 0);
+
+      // 100 ms at half the rate refills 0.2 tile, not 0.4.
+      expect(budget.tryMove(0.3, 100)).toBe(false);
+      expect(budget.tryMove(0.2, 100)).toBe(true);
+    });
+
+    it("keeps what already refilled at the old rate", () => {
+      const budget = createBudget();
+      budget.tryMove(1, 0);
+
+      budget.setRefillRate(0, 100);
+
+      expect(budget.tryMove(0.4, 200)).toBe(true);
+      expect(budget.tryMove(0.01, 200)).toBe(false);
+    });
+  });
 });

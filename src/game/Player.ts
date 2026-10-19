@@ -46,6 +46,7 @@ export class Player extends Container {
 
   private nameTag?: NameTag;
   private theme?: Theme;
+  private speedFactor = 1;
 
   constructor(
     map: GameMap,
@@ -128,7 +129,10 @@ export class Player extends Container {
     columnDirection /= length;
     rowDirection /= length;
 
-    const delta = PLAYER_SPEED * Math.min(deltaSeconds, MAX_FRAME_SECONDS);
+    const delta =
+      PLAYER_SPEED *
+      this.speedFactor *
+      Math.min(deltaSeconds, MAX_FRAME_SECONDS);
 
     const nextPosition: GridPosition = {
       column: this.gridPosition.column + columnDirection * delta,
@@ -174,6 +178,14 @@ export class Player extends Container {
   public applyTheme(theme: Theme): void {
     this.theme = theme;
     this.nameTag?.applyTheme(theme);
+  }
+
+  /**
+   * Walks at `factor` × PLAYER_SPEED, e.g. 0.5 while hit by spam (F-063). The server slows the
+   * player down too: this only keeps the client from sending moves it would refuse.
+   */
+  public setSpeedFactor(factor: number): void {
+    this.speedFactor = factor;
   }
 
   public getGridPosition(): GridPosition {

@@ -14,10 +14,11 @@ is, and the winner gets his real contact details and CV. The full story and rule
 > **Status: work in progress.** Today you pick a recruiter name, walk a map split into CV districts with
 > collisions, live multiplayer and colour themes, open the buildings to read the CV, and
 > chase Ben, the dev, who wanders around and runs away. Opening a building up close (or
-> finding the chest) earns an intel card about him (the Skills Park makes you win its
-> buzzword catcher first), and with 3 cards you can catch him and
-> pitch him a job; a good pitch shows his contact details and CV. The rest of the story (the other
-> minigames, achievements) is designed and on the roadmap, but not built yet.
+> finding the chest) earns an intel card about him (each building makes you win its
+> minigame first), and with 3 cards you can catch him and pitch him a job; a good pitch shows
+> his contact details and CV. Ben taunts you in speech bubbles, spam emails slow you down, and
+> five achievements are up for grabs. Only the Projects Lab minigame is missing (the CV has
+> no projects yet).
 
 ## Features
 
@@ -34,10 +35,13 @@ is, and the winner gets his real contact details and CV. The full story and rule
 - The map is the CV: one district per section (Skills Park, Experience Avenue, Education
   Campus), each named on the ground
 - Open a building to read the real CV: experiences, skills, education and languages
-- Intel cards: open a building from up close, or find the chest, to collect facts about
-  the dev (shown top-right)
-- Minigames: the Skills Park plays a buzzword catcher (catch the dev's stack, dodge the
-  buzzwords) to win its card
+- Intel cards: win a building's minigame from up close, or find the chest, to collect facts
+  about the dev (shown top-right)
+- Minigames: a buzzword catcher in the Skills Park, a career timeline in Experience Avenue
+  and a quiz in the Education Campus, each winning a card
+- Ben speaks in speech bubbles, and "exciting opportunity" spam emails fly across the map
+  and slow you down
+- Achievements (🏆, under the theme button) with a toast when you unlock one
 - Catch Ben with 3 intel cards and pitch him an offer (stack, work mode, role, opening
   line); the server scores it against his real preferences, and a good pitch reveals how
   to contact him
@@ -50,7 +54,8 @@ is, and the winner gets his real contact details and CV. The full story and rule
 1. **Foundations:** CV content and panels, the map as CV districts, recruiter names, the dev wandering.
 2. **The chase:** the dev runs away, intel cards, catch and pitch, reward panel.
 3. **Minigames:** framework, then the Skills Park buzzword catcher.
-4. **Polish:** achievements, speech bubbles, more minigames.
+4. **Polish:** achievements, speech bubbles, spam hazards, the timeline and the quiz (the
+   Projects Lab waits for projects in the CV).
 
 The full feature list, with status and how each feature works, is in
 [`docs/FEATURES.md`](docs/FEATURES.md). Recent changes are in [`CHANGELOG.md`](CHANGELOG.md).
@@ -126,13 +131,13 @@ src/                 game client
     entities/        world objects (Building, Chest)
   scenes/            Pixi scenes (MainScene is the world)
   network/           Colyseus client and remote player sync
-  ui/                CV panels
+  ui/                HTML over the canvas: CV panels, dialogs, achievements
   domain/            CV data types (Cv, Experience, Skill, Education, …)
   content/           the real CV content (French)
   config/            client data (theme palettes)
-shared/              rules shared by client and server (map, buildings, preferences)
+shared/              rules shared by client and server (map, buildings, preferences, spam)
 server/              Colyseus server
-  rooms/             CvRoom (movement rules) and its synced state
+  rooms/             CvRoom (movement rules), the dev and spam logic, and the synced state
 tests/
   unit/              fast logic tests (Vitest)
   integration/       real server + real clients (Vitest)

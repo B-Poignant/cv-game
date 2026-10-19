@@ -40,7 +40,22 @@ export function intelCardText(
     };
   }
 
+  if (id === "education") {
+    return educationText(cv);
+  }
+
   return FIXED_TEXTS[id];
+}
+
+/** The diplomas and the languages spoken (F-074), straight from the CV. */
+function educationText(cv: Cv): IntelCardText {
+  const diplomas = cv.education.map((education) => education.diploma);
+  const languages = cv.languages.map((language) => language.name);
+
+  return {
+    title: "Formation & langues",
+    text: `${diplomas.join(" ; ")} · ${languages.join(", ")}`,
+  };
 }
 
 /** Lead roles (the role title says "Lead"), oldest first. */

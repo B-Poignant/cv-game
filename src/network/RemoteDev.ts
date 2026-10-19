@@ -2,6 +2,7 @@ import { Callbacks, type Room } from "@colyseus/sdk";
 import type { Container } from "pixi.js";
 
 import type { CvRoomState, DevState } from "../../server/rooms/CvRoomState";
+import type { GridPosition } from "../../shared/grid";
 import type { Theme } from "../config/themes";
 import { Dev } from "../game/entities/Dev";
 import type { IsometricConverter } from "../game/IsometricConverter";
@@ -13,6 +14,7 @@ export class RemoteDev {
   private readonly callbacks;
 
   private dev?: Dev;
+  private position?: GridPosition;
   private theme?: Theme;
 
   constructor(
@@ -32,6 +34,21 @@ export class RemoteDev {
   /** The drawn dev, once the room state has arrived. */
   public get character(): Dev | undefined {
     return this.dev;
+  }
+
+  /** Where the server last put him, once the room state has arrived. */
+  public get gridPosition(): GridPosition | undefined {
+    return this.position ? { ...this.position } : undefined;
+  }
+
+  /** Shows a speech bubble above him (F-062). */
+  public say(line: string): void {
+    this.dev?.say(line);
+  }
+
+  /** Advances his bubble's timer. */
+  public update(deltaSeconds: number): void {
+    this.dev?.update(deltaSeconds);
   }
 
   public applyTheme(theme: Theme): void {
@@ -60,7 +77,8 @@ export class RemoteDev {
   }
 
   private moveTo(devState: DevState): void {
-    this.dev?.setGridPosition({ column: devState.column, row: devState.row });
+    this.position = { column: devState.column, row: devState.row };
+    this.dev?.setGridPosition(this.position);
   }
 
   private removeDev(): void {

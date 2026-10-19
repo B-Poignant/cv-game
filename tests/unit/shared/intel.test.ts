@@ -48,6 +48,7 @@ describe("intel cards", () => {
   it("finds the card each source gives", () => {
     expect(intelCardFrom("skills")).toBe("stack");
     expect(intelCardFrom("experience")).toBe("lead");
+    expect(intelCardFrom("education")).toBe("education");
     expect(intelCardFrom("chest")).toBe("work-mode");
   });
 

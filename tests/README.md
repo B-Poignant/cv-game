@@ -78,6 +78,8 @@ npx vitest run tests/unit/game/Player.test.ts -t "diagonal"   # one file / one t
 - **Every server rule gets a rejection test**, including malformed payloads (NaN, strings,
   missing fields). The server is authoritative, so assume clients can be modified to cheat.
 - To isolate one rule, arrange the state directly on the server (`player().column = 0`).
+- `useColyseusServer` stubs `SPAM_FLIES=false` before each test, so no spam email (F-063) hits a
+  visitor by surprise. A spam test turns it on with `vi.stubEnv("SPAM_FLIES", "true")`.
 
 ## E2E tests
 
@@ -86,8 +88,9 @@ npx vitest run tests/unit/game/Player.test.ts -t "diagonal"   # one file / one t
   `[REMOTE]` and `[DEV]` console logs are how we observe it. **Renaming those log messages breaks
   E2E tests.**
 - Every E2E test asserts `console.errors` is empty.
-- The e2e server runs with `DEV_WANDERS=false` (`playwright.config.ts`): the dev stands
-  still, so screenshot comparisons only change when a visitor moves.
+- The e2e server runs with `DEV_WANDERS=false` and `SPAM_FLIES=false` (`playwright.config.ts`):
+  the dev stands still and no spam email flies, so screenshot comparisons only change when a
+  visitor moves.
 - Use the `newVisitor()` fixture for each extra visitor: it opens a page in its own browser
   context and closes it after the test, even a failed one.
 - E2E runs with one worker (`playwright.config.ts`): every spec shares one server and room,

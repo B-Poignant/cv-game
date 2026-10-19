@@ -32,7 +32,7 @@ flowchart LR
 - **The client** draws the world with Pixi.js, reads input and shows HTML UI over the canvas.
 - **The server** is authoritative. A Colyseus room owns the shared state and checks every
   move. It also runs the world: a 20 Hz loop moves the dev (wandering F-060, fleeing F-061) with pure logic
-  (`DevWanderer`) and syncs him through the room state. The client's own checks only make it feel responsive.
+  (`DevWanderer`) and the spam emails (F-063, `SpamStorm`) and syncs both through the room state. The client's own checks only make it feel responsive.
 - **In production** one Node process (`npm start`, or the Docker image) serves the built
   client and the room on one port, so the client connects to its own origin (F-080).
 - **`shared/`** holds every rule both sides need (map size, spawn, building layout,
@@ -40,17 +40,17 @@ flowchart LR
 
 ## Layers
 
-| Layer          | Holds                                               | May import                                                                        | Never imports                                         |
-| -------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `shared/`      | world rules used by client **and** server           | other `shared/` files                                                             | `src/`, `server/`, Pixi, Colyseus, DOM or Node APIs   |
-| `src/domain/`  | plain CV data types                                 | `domain/`, `shared/`                                                              | anything else in `src/`, Pixi, Colyseus               |
-| `src/content/` | the real CV data (`cv.ts`) and its formatting       | `domain/`, `shared/`                                                              | Pixi                                                  |
-| `src/config/`  | client-only static data (theme palettes)            | `shared/`, `domain/`                                                              | Pixi                                                  |
-| `src/game/`    | engine: Pixi objects, map, camera, player, entities | `shared/`, `domain/`, `config/`, Pixi                                             | `ui/`, `network/` (except `Game`, which wires it all) |
-| `src/network/` | Colyseus client and remote players                  | `game/`, `shared/`, `@colyseus/sdk`, server types via `import type`               | server code at runtime, the `colyseus` package        |
-| `src/scenes/`  | Pixi containers that put the world together         | `game/`, `network/`, `shared/`, `config/`, `domain/`                              | `ui/`                                                 |
-| `src/ui/`      | HTML over the canvas (panels, buttons)              | `shared/`, `domain/`, `content/`, `config/`, `game/` logic classes (`ThemeCycle`) | Pixi, `scenes/`                                       |
-| `server/`      | Colyseus rooms, schema, server entry                | `shared/`, `colyseus`, `@colyseus/schema`                                         | `src/`, Pixi                                          |
+| Layer          | Holds                                                       | May import                                                                        | Never imports                                         |
+| -------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `shared/`      | world rules used by client **and** server                   | other `shared/` files                                                             | `src/`, `server/`, Pixi, Colyseus, DOM or Node APIs   |
+| `src/domain/`  | plain CV data types                                         | `domain/`, `shared/`                                                              | anything else in `src/`, Pixi, Colyseus               |
+| `src/content/` | the real CV data (`cv.ts`) and its formatting               | `domain/`, `shared/`                                                              | Pixi                                                  |
+| `src/config/`  | client-only static data (themes, achievements, Ben's lines) | `shared/`, `domain/`                                                              | Pixi                                                  |
+| `src/game/`    | engine: Pixi objects, map, camera, player, entities         | `shared/`, `domain/`, `config/`, Pixi                                             | `ui/`, `network/` (except `Game`, which wires it all) |
+| `src/network/` | Colyseus client and remote players                          | `game/`, `shared/`, `@colyseus/sdk`, server types via `import type`               | server code at runtime, the `colyseus` package        |
+| `src/scenes/`  | Pixi containers that put the world together                 | `game/`, `network/`, `shared/`, `config/`, `domain/`                              | `ui/`                                                 |
+| `src/ui/`      | HTML over the canvas (panels, buttons)                      | `shared/`, `domain/`, `content/`, `config/`, `game/` logic classes (`ThemeCycle`) | Pixi, `scenes/`                                       |
+| `server/`      | Colyseus rooms, schema, server entry                        | `shared/`, `colyseus`, `@colyseus/schema`                                         | `src/`, Pixi                                          |
 
 `Game` (`src/game/Game.ts`) is the composition root: the one place that creates scenes and
 UI and connects them through callbacks.
@@ -123,6 +123,17 @@ After each accepted `move` and each dev step, `CvRoom.checkCatch` → `PitchTrac
 `PitchFlow` only knows the scene through the `PitchHost` interface, so `ui/` doesn't import
 `scenes/`, and it can be unit tested (`Game` itself needs WebGL).
 
+### Spam (F-063)
+
+`CvRoom`'s 20 Hz loop → `SpamStorm.update(deltaSeconds, recruiters)` spawns, moves and
+removes emails and reports the recruiters hit → `CvRoom.updateSpam` → `setSlowed` sets
+`PlayerState.slowed` and `MoveBudget.setRefillRate` (the server's speed limit drops with it)
+and `syncEmails` writes the flying emails into `CvRoomState.emails` → state patch →
+`RemoteSpam` draws `SpamEmail`s and, on a change of the visitor's own `slowed`,
+`MainScene` `onSlowedChange` → `Player.setSpeedFactor` and a chat message from `Game`.
+The server decides who is hit and how fast they may move; the client only slows its own
+character to match, so a client that ignores it is rejected by `MoveBudget`.
+
 ### Theme change (F-050)
 
 `ThemeButton` click → `ThemeCycle.next()` → listeners → `MainScene.applyTheme` → renderer
@@ -181,8 +192,9 @@ reaches a 4.5:1 contrast with `tile.fill`.
 2. Implement `Minigame` (`src/game/minigames/Minigame.ts`): draw into `view` (origin = the
    play area's top-left corner, size from the `MinigameContext`), read your own input (remove
    listeners in `destroy`), and call `finish({ won })` once. Don't call it from `create`.
-3. Register a `MinigameDefinition` (title + `create`) for its section in `MINIGAMES`
-   (`src/scenes/minigames/registry.ts`). `MinigameScene` and `MinigameFlow` do the rest:
+3. Register a `MinigameDefinition` (title + `create`) for its section in `createMinigames`
+   (`src/scenes/minigames/registry.ts`; it takes the CV from `Game`, since scenes can't import
+   content). Choice-based games reuse `ChoiceButton` and `shuffle` (`src/game/minigames/`). `MinigameScene` and `MinigameFlow` do the rest:
    board, title, Escape, resize, theme, the card on a win and the CV panel afterwards.
 
 ### A server rule
@@ -208,8 +220,9 @@ change game state.
 
 Things that are in the way of scaling. Fix them when a feature touches them.
 
-| Debt                                                                                   | Where                                          | Impact                                          |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------- |
-| `MainScene` creates its own `MultiplayerClient` (its URL comes from `serverEndpoint`)  | `src/scenes/MainScene.ts`, `MultiplayerClient` | Hard to swap. Tests have to mock the module.    |
-| No reconciliation: a rejected move leaves the local player out of sync with the server | `Player`, `MainScene`                          | The local and server positions can drift apart. |
-| The chest doesn't block movement                                                       | `MainScene.createChest`, `shared/world.ts`     | Recruiters walk through it.                     |
+| Debt                                                                                    | Where                                               | Impact                                                                           |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `MainScene` creates its own `MultiplayerClient` (its URL comes from `serverEndpoint`)   | `src/scenes/MainScene.ts`, `MultiplayerClient`      | Hard to swap. Tests have to mock the module.                                     |
+| No reconciliation: a rejected move leaves the local player out of sync with the server  | `Player`, `MainScene`                               | The local and server positions can drift apart.                                  |
+| `MainScene` (~400 lines) and `CvRoom` (~360) keep growing, over the ~200-line guideline | `src/scenes/MainScene.ts`, `server/rooms/CvRoom.ts` | Split the network wiring and the spam sync out when a feature next touches them. |
+| The chest doesn't block movement                                                        | `MainScene.createChest`, `shared/world.ts`          | Recruiters walk through it.                                                      |

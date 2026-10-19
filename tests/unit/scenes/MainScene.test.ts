@@ -1,12 +1,13 @@
 // @vitest-environment happy-dom
 import { Container, Text, type Renderer } from "pixi.js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BUILDINGS } from "../../../shared/buildings";
 import { DISTRICTS } from "../../../shared/districts";
 import type { IntelCardId } from "../../../shared/intel";
 import type { PitchEvent, PitchOffer } from "../../../shared/pitch";
 import type { RecruiterIdentity } from "../../../shared/recruiters";
+import { SPAM } from "../../../shared/spam";
 import {
   createWorldCollisions,
   isWalkable,
@@ -58,7 +59,14 @@ vi.mock("../../../src/network/RemotePlayersManager", () => ({
 const remoteDev = vi.hoisted(() => ({
   created: vi.fn(),
   applyTheme: vi.fn(),
+  say: vi.fn(),
+  update: vi.fn(),
   destroy: vi.fn(),
+}));
+
+/** Where the fake server says Ben is (F-062); undefined until his state arrives. */
+const devState = vi.hoisted(() => ({
+  gridPosition: undefined as { column: number; row: number } | undefined,
 }));
 
 vi.mock("../../../src/network/RemoteDev", () => ({
@@ -66,7 +74,12 @@ vi.mock("../../../src/network/RemoteDev", () => ({
     constructor() {
       remoteDev.created();
     }
+    get gridPosition() {
+      return devState.gridPosition;
+    }
     applyTheme = remoteDev.applyTheme;
+    say = remoteDev.say;
+    update = remoteDev.update;
     destroy = remoteDev.destroy;
   },
 }));
@@ -102,6 +115,32 @@ vi.mock("../../../src/network/PitchChannel", () => ({
     destroy = pitchChannel.destroy;
   },
 }));
+
+const remoteSpam = vi.hoisted(() => ({
+  onSlowedChange: undefined as ((slowed: boolean) => void) | undefined,
+  applyTheme: vi.fn(),
+  destroy: vi.fn(),
+}));
+
+vi.mock("../../../src/network/RemoteSpam", () => ({
+  RemoteSpam: class {
+    constructor(
+      _world: unknown,
+      _converter: unknown,
+      _room: unknown,
+      onSlowedChange: (slowed: boolean) => void,
+    ) {
+      remoteSpam.onSlowedChange = onSlowedChange;
+    }
+    applyTheme = remoteSpam.applyTheme;
+    destroy = remoteSpam.destroy;
+  },
+}));
+
+/** The server says this visitor is (no longer) slowed by spam. */
+function serverSetsSlowed(slowed: boolean): void {
+  remoteSpam.onSlowedChange?.(slowed);
+}
 
 function fakeRenderer(width = 1280, height = 720): Renderer {
   return { width, height, background: { color: 0 } } as unknown as Renderer;
@@ -649,6 +688,81 @@ describe("MainScene", () => {
 
       scene.destroy();
       expect(remoteDev.destroy).toHaveBeenCalledOnce();
+    });
+
+    // F-063
+    it("slows the player down while spam has hit them, and says so", async () => {
+      remoteSpam.onSlowedChange = undefined;
+      const onSlowedChange = vi.fn();
+      const { scene, ofType } = createScene(fakeRenderer(), { onSlowedChange });
+      const [player] = ofType(Player);
+      scene.applyTheme(THEMES[1]);
+      scene.join(HOMER);
+      await vi.waitFor(() => expect(remoteSpam.onSlowedChange).toBeDefined());
+      expect(remoteSpam.applyTheme).toHaveBeenLastCalledWith(THEMES[1]);
+
+      serverSetsSlowed(true);
+      pressKey("ArrowRight");
+      scene.update(1 / 60);
+      releaseKey("ArrowRight");
+
+      expect(onSlowedChange).toHaveBeenCalledWith(true);
+      expect(player.getGridPosition().column).toBeCloseTo(
+        PLAYER_SPAWN.column + 0.05 * SPAM.slowFactor,
+      );
+
+      serverSetsSlowed(false);
+      scene.applyTheme(THEMES[2]);
+      scene.destroy();
+
+      expect(onSlowedChange).toHaveBeenLastCalledWith(false);
+      expect(remoteSpam.applyTheme).toHaveBeenLastCalledWith(THEMES[2]);
+      expect(remoteSpam.destroy).toHaveBeenCalled();
+    });
+
+    // F-062
+    describe("Ben's speech bubbles", () => {
+      async function joinedNextToBen(options: MainSceneOptions = {}) {
+        Object.values(remoteDev).forEach((mock) => mock.mockClear());
+        devState.gridPosition = { ...PLAYER_SPAWN, row: PLAYER_SPAWN.row - 1 };
+        const created = createScene(fakeRenderer(), options);
+        created.scene.join(HOMER);
+        await vi.waitFor(() => expect(remoteDev.created).toHaveBeenCalled());
+        return created;
+      }
+
+      afterEach(() => {
+        devState.gridPosition = undefined;
+      });
+
+      it("shows Ben's line above him and passes it on when the visitor comes close", async () => {
+        const onDevLine = vi.fn();
+        const { scene } = await joinedNextToBen({ onDevLine });
+
+        scene.update(0.1);
+
+        expect(remoteDev.say).toHaveBeenCalledOnce();
+        expect(onDevLine).toHaveBeenCalledWith(remoteDev.say.mock.calls[0][0]);
+        expect(remoteDev.update).toHaveBeenCalledWith(0.1);
+      });
+
+      it("keeps Ben quiet while the game is paused", async () => {
+        const { scene } = await joinedNextToBen();
+
+        scene.setPaused(true);
+        scene.update(0.1);
+
+        expect(remoteDev.say).not.toHaveBeenCalled();
+      });
+
+      it("keeps Ben quiet until his position has arrived", async () => {
+        const { scene } = await joinedNextToBen();
+        devState.gridPosition = undefined;
+
+        scene.update(0.1);
+
+        expect(remoteDev.say).not.toHaveBeenCalled();
+      });
     });
 
     // F-012

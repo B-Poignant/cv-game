@@ -43,7 +43,7 @@ it, or unscheduled).
 | [F-031](#f-031-intel-cards)                         | Intel cards                              | ✅     | 2        | `shared/intel.ts`, `src/content/intel.ts`, `src/ui/IntelInventory.ts`, `src/network/LocalIntel.ts`        | unit, integration, e2e |
 | **Interactions**                                    |                                          |        |          |                                                                                                           |                        |
 | [F-040](#f-040-clickable-chest)                     | Clickable chest on the map               | 🚧     | —        | `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`                                | unit, integration      |
-| [F-041](#f-041-achievements)                        | Achievements                             | 📋     | 4        | —                                                                                                         | —                      |
+| [F-041](#f-041-achievements)                        | Achievements                             | ✅     | 4        | `src/config/achievements.ts`, `src/game/AchievementTracker.ts`, `src/ui/AchievementsPanel.ts`             | unit                   |
 | [F-042](#f-042-catch-and-pitch)                     | Catch + pitch dialog                     | ✅     | 2        | `shared/pitch.ts`, `server/rooms/PitchTracker.ts`, `src/network/PitchChannel.ts`, `src/ui/PitchDialog.ts` | unit, integration, e2e |
 | [F-043](#f-043-reward-panel)                        | Reward panel: contact info + CV PDF      | ✅     | 2        | `src/content/contact.ts`, `src/ui/rewardSection.ts`, `src/ui/PitchFlow.ts`                                | unit                   |
 | **Display**                                         |                                          |        |          |                                                                                                           |                        |
@@ -53,14 +53,14 @@ it, or unscheduled).
 | **Story & the dev**                                 |                                          |        |          |                                                                                                           |                        |
 | [F-060](#f-060-the-dev-wanders)                     | The dev wanders the map (server-run NPC) | ✅     | 1        | `server/rooms/DevWanderer.ts`, `src/network/RemoteDev.ts`, `src/game/entities/Dev.ts`                     | unit, integration, e2e |
 | [F-061](#f-061-the-dev-runs-away)                   | The dev runs away from recruiters        | ✅     | 2        | `server/rooms/flee.ts`, `server/rooms/DevWanderer.ts`                                                     | unit, integration      |
-| [F-062](#f-062-dev-speech-bubbles)                  | Dev speech bubbles                       | 💡     | 4        | —                                                                                                         | —                      |
-| [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | 💡     | 4        | —                                                                                                         | —                      |
+| [F-062](#f-062-dev-speech-bubbles)                  | Dev speech bubbles                       | ✅     | 4        | `src/game/DevChatter.ts`, `src/config/devLines.ts`, `src/game/entities/Dev.ts`                            | unit, integration      |
+| [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | ✅     | 4        | `shared/spam.ts`, `server/rooms/SpamStorm.ts`, `src/network/RemoteSpam.ts`                                | unit, integration      |
 | **Minigames**                                       |                                          |        |          |                                                                                                           |                        |
 | [F-070](#f-070-minigame-framework)                  | Minigame framework                       | ✅     | 3        | `src/game/minigames/Minigame.ts`, `src/scenes/MinigameScene.ts`, `src/scenes/MinigameFlow.ts`             | unit                   |
 | [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | ✅     | 3        | `src/game/minigames/buzzwordCatcher/`, `src/scenes/minigames/registry.ts`                                 | unit, e2e              |
-| [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | 💡     | 4        | —                                                                                                         | —                      |
+| [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | ✅     | 4        | `src/game/minigames/careerTimeline/`                                                                      | unit, e2e              |
 | [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | 4        | —                                                                                                         | —                      |
-| [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | 💡     | 4        | —                                                                                                         | —                      |
+| [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | ✅     | 4        | `src/game/minigames/educationQuiz/`                                                                       | unit                   |
 | **Delivery & deployment**                           |                                          |        |          |                                                                                                           |                        |
 | [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | Delivery | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration      |
 | [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | ✅     | Delivery | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test          |
@@ -73,13 +73,13 @@ it, or unscheduled).
 The order to build the "Headhunted" story ([GAME_DESIGN.md](GAME_DESIGN.md)). Each phase is
 playable on its own.
 
-| Phase                  | Features                                 | Playable result                                                                                                   |
-| ---------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **0. Prerequisite** ✅ | shared client/server config (`shared/`)  | Map size, spawn, buildings, walkability and the dev's preferences defined once (fixed the F-001 and F-022 limits) |
-| **1. Foundations** ✅  | F-030 ✅, F-005 ✅, F-012 ✅, F-060 ✅   | Walk the CV map as a named recruiter, read sections, see the dev wander                                           |
-| **2. The chase** ✅    | F-061 ✅, F-031 ✅, F-042 ✅, F-043 ✅   | Full loop: collect intel, chase, pitch, get the contact details                                                   |
-| **3. Minigames** ✅    | F-070 ✅, F-071 ✅                       | Intel earned by playing, starting with the Skills Park                                                            |
-| **4. Polish**          | F-041, F-062, F-063, F-072, F-073, F-074 | Achievements, personality, the remaining minigames                                                                |
+| Phase                  | Features                                                   | Playable result                                                                                                   |
+| ---------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **0. Prerequisite** ✅ | shared client/server config (`shared/`)                    | Map size, spawn, buildings, walkability and the dev's preferences defined once (fixed the F-001 and F-022 limits) |
+| **1. Foundations** ✅  | F-030 ✅, F-005 ✅, F-012 ✅, F-060 ✅                     | Walk the CV map as a named recruiter, read sections, see the dev wander                                           |
+| **2. The chase** ✅    | F-061 ✅, F-031 ✅, F-042 ✅, F-043 ✅                     | Full loop: collect intel, chase, pitch, get the contact details                                                   |
+| **3. Minigames** ✅    | F-070 ✅, F-071 ✅                                         | Intel earned by playing, starting with the Skills Park                                                            |
+| **4. Polish** ✅       | F-041 ✅, F-062 ✅, F-063 ✅, F-072 ✅, F-074 ✅, F-073 💡 | Achievements, personality, hazards, the minigames (the Projects Lab waits for projects in the CV)                 |
 
 Delivery & deployment (F-080 → F-084) is a separate track outside the story. It can be built
 at any point, in ID order, and should land before the game is shared publicly.
@@ -344,23 +344,26 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ### F-031 Intel cards
 
-✅ Done (phase 2), with interim sources until the minigames exist (F-070)
+✅ Done (phase 2)
 
 - **What:** facts about the dev, in French, that recruiters collect before pitching (F-042
-  needs 3). For now, opening a building **up close** (2 tiles at most) gives its card, and
-  the hidden chest gives a secret one. An inventory in the top-right corner lists them
-  ("Intel 1/3"); each new card is announced in the chat log (F-052).
+  needs 3). Each building gives its card for winning its minigame (F-070), and the hidden
+  chest gives a secret one. There are 4 cards, so a recruiter can skip one. An inventory in
+  the top-right corner lists them ("Intel 1/3"; the count stops at 3/3, the cards needed);
+  each new card is announced in the chat log (F-052).
 - **The cards** (validated by the CV owner):
   - SKILLS → **Stack principale**: PHP (Symfony, Laravel) et JavaScript / TypeScript (Ember.js,
     React, Vue.js)
   - EXPERIENCE → **Séniorité**: "Dev : 9 ans 10 mois + Lead : 4 ans 10 mois" (in October 2026), computed from the CV: lead = roles whose title says "Lead";
     dev = the other roles, minus work-study jobs ("alternance", the EISTI job during the BTS).
     Each month is counted once per total, so the changeover month from lead to dev counts in both.
+  - EDUCATION → **Formation & langues**: "BTS, Informatique | option développement ·
+    Français, Anglais", built from the CV
   - Chest → **Critère éliminatoire**: Télétravail idéal, hybride accepté, 5 jours sur site : refus
 - **Design:** GAME_DESIGN.md › "Core loop" and "The map is the CV".
 - **How it works:**
   - `shared/intel.ts` holds the card ids and their source (`INTEL_CARDS`),
-    `INTEL_NEEDED_TO_PITCH` (3), `INTEL_REACH` (2 tiles) and `isWithinIntelReach`: the distance
+    `INTEL_NEEDED_TO_PITCH` (3, fewer than the 4 cards), `INTEL_REACH` (2 tiles) and `isWithinIntelReach`: the distance
     from a position to the nearest tile of the building's footprint, or to the chest tile
     (`CHEST_POSITION` in `shared/world.ts`).
   - Tapping a building or the chest calls `MainScene.collectIntel(source)`. Too far, it calls
@@ -372,6 +375,7 @@ at any point, in ID order, and should land before the game is shared publicly.
   - `LocalIntel` (`src/network/`) follows the visitor's own `intel` array and reports it to
     `MainScene` → `Game` → `IntelInventory` (`src/ui/`, styled in `src/style.css`).
     `intelCardText` (`src/content/intel.ts`) gives each id its French title and text.
+    The heading counts at most `INTEL_NEEDED_TO_PITCH` while the list shows every card.
   - The inventory stays hidden until the room has synced, so single-player (F-023) never
     shows it. It sits under the dialogs' backdrop, so it never covers a dialog on a phone.
 - **Code:** `shared/intel.ts`, `shared/world.ts`, `server/rooms/CvRoom.ts`,
@@ -379,15 +383,15 @@ at any point, in ID order, and should land before the game is shared publicly.
   `src/scenes/MainScene.ts`, `src/ui/IntelInventory.ts`, `src/game/Game.ts`, `src/style.css`
 - **Tests:** `tests/unit/shared/intel.test.ts` (one card per source, reach, every source
   reachable), `tests/unit/content/intel.test.ts` (texts match the preferences, lead months),
-  `tests/unit/ui/IntelInventory.test.ts`, `tests/unit/scenes/MainScene.test.ts` ("collecting
+  `tests/unit/ui/IntelInventory.test.ts` ("stops counting at the cards needed to pitch"), `tests/unit/scenes/MainScene.test.ts` ("collecting
   intel"); integration `tests/integration/server/CvRoom.test.ts` ("intel cards": too far,
   twice, bad messages, only the sender), `tests/integration/network/LocalIntel.test.ts`;
   e2e `tests/e2e/intel.spec.ts`
 - **Limits:**
-  - Interim source: EXPERIENCE still gives its card for a click up close, until its minigame
-    (F-072) exists. SKILLS gives it for winning the buzzword catcher (F-071). The cards
-    "Outils du quotidien", "Postes occupés", "Méthode", "Parcours" and "Langues" were
-    proposed and kept for the minigames.
+  - Every card comes from a minigame: SKILLS from the buzzword catcher (F-071), EXPERIENCE
+    from the career timeline (F-072), EDUCATION from the quiz (F-074). The Projects Lab
+    (F-073) has no card yet. The cards "Outils du quotidien", "Postes occupés", "Méthode"
+    and "Parcours" were proposed and are kept for later.
   - Cards live in the room: they're lost on reload or when the room closes (no accounts).
   - The card texts ship in the client bundle, so a curious visitor can read them in the
     source. They're public CV facts, so that's accepted.
@@ -407,18 +411,37 @@ at any point, in ID order, and should land before the game is shared publicly.
 - **Tests:** `tests/unit/game/entities/Chest.test.ts` (clickable), `tests/unit/scenes/MainScene.test.ts`
   ("collecting intel"), `tests/integration/server/CvRoom.test.ts` (the chest's card)
 - **Limits:** it doesn't block movement, it can't be reached with the keyboard (it's not an
-  accessible object like the buildings), and it's in plain sight rather than hidden. The
-  achievement (F-041) isn't built.
+  accessible object like the buildings), and it's in plain sight rather than hidden.
 
 ### F-041 Achievements
 
-📋 Planned (phase 4)
+✅ Done (phase 4)
 
-- **What:** badges for milestones: "Hired the dev", "Read the whole CV" (every section panel
-  opened), "Found the chest", "Hired in under 2 minutes", "Pitched like a pro" (first try).
+- **What:** five badges for milestones: "Hired the dev", "Read the whole CV" (every section
+  panel opened), "Found the chest", "Hired in under 2 minutes" (from arrival to yes) and
+  "Pitched like a pro" (hired on the first pitch). A toast announces each unlock, the chat log
+  (F-052) posts it, and a "🏆 n/5" button under the theme button opens the list (✓ unlocked,
+  🔒 locked).
 - **Design:** GAME_DESIGN.md › "Rewards".
-- **To do:** achievement definitions, unlock tracking, a toast notification, and an
-  achievements list. Decide whether they persist (local storage?).
+- **How it works:**
+  - `ACHIEVEMENTS` (`src/config/achievements.ts`) holds the definitions.
+  - `AchievementTracker` (`src/game/`, pure) takes events (`arrived`, `sectionOpened`,
+    `intelChanged`, `pitched` with the hired flag) and returns what just unlocked. It saves
+    the unlocked ids to `localStorage` (key `cv-game.achievements`) through an injected
+    storage, ignoring unknown or broken saved data and working without storage. The progress
+    of a visit (sections opened, the pitch count, the arrival time) isn't saved.
+  - `AchievementsPanel` (the button and list, `aria-expanded`) and `AchievementToast`
+    (`role="status"`, shown 4 s) are in `src/ui/`, styled in `src/style.css`.
+    `Game.createAchievements` wires the events. On narrow screens the intel inventory moves
+    down to leave room.
+- **Code:** `src/config/achievements.ts`, `src/game/AchievementTracker.ts`,
+  `src/ui/AchievementsPanel.ts`, `src/ui/AchievementToast.ts`, `src/game/Game.ts`,
+  `src/style.css`
+- **Tests:** `tests/unit/game/AchievementTracker.test.ts`,
+  `tests/unit/ui/AchievementsPanel.test.ts`, `tests/unit/ui/AchievementToast.test.ts`. No e2e
+  test.
+- **Limits:** client-side only and per browser, so a visitor could fake a badge (fine for
+  badges). Nothing is shared between visitors.
 
 ### F-042 Catch and pitch
 
@@ -654,23 +677,82 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ### F-062 Dev speech bubbles
 
-💡 Idea
+✅ Done (phase 4)
 
-- **What:** the dev taunts recruiters in short bubbles ("Not open to work… unless it's remote").
+- **What:** Ben taunts the visitor in a short bubble above his head: a "close" line when a
+  recruiter comes within 4 tiles ("Not open to work… unless it's remote."), an "idle" line
+  after a long quiet spell ("Just one more commit…"). Each line is also posted to the chat
+  log as "Ben: …".
 - **Design:** GAME_DESIGN.md › "Tone" (example lines).
+- **How it works:**
+  - `DEV_BUBBLE_LINES` (`src/config/devLines.ts`): the lines, at most 60 characters each.
+  - `DevChatter` (`src/game/`, pure) is fed Ben's and the visitor's positions each frame.
+    It says a "close" line once per approach (within `DEV_FLEE_RADIUS`), an "idle" line after
+    20 s with the visitor far away, waits at least 8 s between lines and never repeats the
+    same line twice in a row.
+  - `Dev.say` shows the bubble for 3.5 s and `Dev.update` ages it; the bubble size is
+    estimated from the text, not measured, because tests have no canvas. `RemoteDev` exposes
+    `gridPosition`, `say` and `update`.
+  - `MainScene.updateDevChatter` runs only when the scene isn't paused and Ben's position
+    has arrived. It shows the line and calls the `onDevLine` option; `Game` posts it to the
+    chat log.
+  - Client-only, per visitor: a bubble changes nothing in the game, so there is no server rule.
+- **Code:** `src/config/devLines.ts`, `src/game/DevChatter.ts`, `src/game/entities/Dev.ts`,
+  `src/network/RemoteDev.ts`, `src/scenes/MainScene.ts`, `src/game/Game.ts`
+- **Tests:** `tests/unit/game/DevChatter.test.ts`, `tests/unit/game/entities/Dev.test.ts`
+  ("speech bubble"), `tests/unit/scenes/MainScene.test.ts` ("Ben's speech bubbles"),
+  `tests/integration/network/RemoteDev.test.ts`
+- **Limits:** each visitor sees only the bubble triggered by their own position, not other
+  recruiters'. There is none in single-player mode (F-023), where Ben doesn't exist. The
+  lines are few (7).
 
 ### F-063 Recruiter-spam hazards
 
-💡 Idea
+✅ Done (phase 4), server-authoritative
 
-- **What:** flying "exciting opportunity" emails that slow down recruiters they hit.
-- **Design:** GAME_DESIGN.md › "Ideas not yet scheduled".
+- **What:** "exciting opportunity" emails fly across the map and slow down the recruiters
+  they hit: half speed for 2 s ("mild", the owner's choice). The chat log says "Spam! An
+  exciting opportunity slows you down."
+- **Design:** GAME_DESIGN.md › "Hazards".
+- **How it works:**
+  - `SPAM` (`shared/spam.ts`): at most 2 emails at once, the first after 1 s then one every
+    5 s, 5 tiles/s, a hit within 0.6 tile, `slowFactor` 0.5 for `slowSeconds` 2.
+    `spamSubject(id)` picks the subject shown from `SPAM_SUBJECTS`.
+  - `SpamStorm` (`server/rooms/SpamStorm.ts`) is pure, like `DevWanderer`. It aims each
+    email along a random recruiter's row or column from just outside the map edge. Emails fly
+    over buildings. A hit removes the email and slows the recruiter (a new hit restarts the
+    timer). A step covers at most 0.1 s and floating-point leftovers are ignored.
+  - `CvRoom` runs it in the 20 Hz loop (the timestep runs when the dev wanders or spam
+    flies). `updateSpam` calls `setSlowed`: it sets `PlayerState.slowed` and
+    `MoveBudget.setRefillRate`, so the budget refills at `PLAYER_SPEED` × `SPEED_TOLERANCE`
+    × `slowFactor` while slowed. `syncEmails` copies the flying emails into
+    `CvRoomState.emails` (`EmailState`: id, column, row). `SPAM_FLIES=false` turns it off.
+  - On the client, `RemoteSpam` draws each email as a `SpamEmail` (envelope and subject in
+    the theme's `label` colour) and watches the visitor's own `slowed`, reporting only
+    changes (`onSlowedChange`). `MainScene` calls `Player.setSpeedFactor` and `Game` posts
+    the chat message.
+- **Code:** `shared/spam.ts`, `server/rooms/SpamStorm.ts`, `server/rooms/CvRoom.ts`,
+  `server/rooms/CvRoomState.ts`, `server/rooms/MoveBudget.ts`, `src/game/entities/SpamEmail.ts`,
+  `src/network/RemoteSpam.ts`, `src/game/Player.ts`, `src/scenes/MainScene.ts`, `src/game/Game.ts`
+- **Tests:** `tests/unit/server/rooms/SpamStorm.test.ts`, `tests/unit/server/rooms/MoveBudget.test.ts`
+  ("changing the refill rate"), `tests/unit/shared/spam.test.ts`,
+  `tests/unit/game/entities/SpamEmail.test.ts`, `tests/unit/game/Player.test.ts` ("slowed down
+  by spam"), `tests/unit/scenes/MainScene.test.ts`; integration
+  `tests/integration/server/CvRoom.test.ts` ("spam emails", including "rejects moves faster
+  than the slowed speed"), `tests/integration/network/RemoteSpam.test.ts`. The test helper
+  `useColyseusServer` sets `SPAM_FLIES=false`; the spam tests turn it on.
+- **Limits:**
+  - Emails aren't predicted on the client: they jump 20 times a second.
+  - A slowed client can still burst 1 tile (the budget capacity is unchanged).
+  - The slowdown reaches the client one patch late; the speed tolerance absorbs it.
+  - Off in e2e (`playwright.config.ts` sets `SPAM_FLIES=false`), so a canvas only changes when a
+    visitor moves.
 
 ## Minigames
 
 ### F-070 Minigame framework
 
-✅ Done (phase 3): the framework; the first minigame is F-071
+✅ Done (phase 3): the framework; the minigames are F-071, F-072 and F-074
 
 - **What:** opening a building that has a minigame, from up close and without its card yet,
   starts the minigame on a board over the map instead of opening the CV panel. Win or lose,
@@ -682,10 +764,15 @@ at any point, in ID order, and should land before the game is shared publicly.
   - `Minigame` (`src/game/minigames/Minigame.ts`) is the contract: a `view` to draw in,
     `update(deltaSeconds)`, optional `resize` and `applyTheme`, `destroy`, and a `finish({ won })`
     callback given at creation. A `MinigameDefinition` adds the title and the `create` factory.
-  - `MINIGAMES` (`src/scenes/minigames/registry.ts`) maps a CV section to its definition.
+  - `createMinigames(cv)` (`src/scenes/minigames/registry.ts`) maps a CV section to its
+    definition. `Game` passes the CV in, because scenes can't import content.
+  - `ChoiceButton` (`src/game/minigames/`) is the accessible button the choice-based
+    minigames share: Tab turns it into a real `<button>` named after its text, and a result
+    shows as a ✓ or ✗ prefix, not by colour alone. `shuffle.ts` shuffles the options.
   - `MainScene.openBuilding` plays the minigame only when the building has one, the visitor
-    stands within `INTEL_REACH` and doesn't hold its card. Otherwise the interim rule stays
-    (panel + card up close). `minigameEnded` runs `collectIntel` after a win, so the server
+    stands within `INTEL_REACH` and doesn't hold its card. A building without a
+    minigame would keep the interim rule (panel + card up close); every building has one now,
+    but the code path stays. `minigameEnded` runs `collectIntel` after a win, so the server
     still checks reach and duplicates.
   - `MinigameFlow` (`src/scenes/`, wired by `Game`, testable without WebGL) pauses and hides
     the map, plays, posts the result, calls `minigameEnded`, then opens the CV panel, whose
@@ -696,12 +783,14 @@ at any point, in ID order, and should land before the game is shared publicly.
     and destroys the minigame once it ends (only the first `finish` counts).
   - The unused `BootScene` and `CvScene` placeholders were removed.
 - **Code:** `src/game/minigames/Minigame.ts`, `src/scenes/MinigameScene.ts`,
-  `src/scenes/MinigameFlow.ts`, `src/scenes/minigames/registry.ts`, `src/scenes/MainScene.ts`,
-  `src/game/Game.ts`
+  `src/scenes/MinigameFlow.ts`, `src/scenes/minigames/registry.ts`, `src/game/minigames/ChoiceButton.ts`,
+  `src/game/minigames/shuffle.ts`, `src/scenes/MainScene.ts`, `src/game/Game.ts`
 - **Tests:** e2e `tests/e2e/minigames.spec.ts` (up close, Escape, panel, no card), `tests/unit/scenes/MinigameScene.test.ts` (board size on desktop and phone, theme,
   frames, result and cleanup, only the first end counts, Escape, one at a time, resize,
   destroy), `tests/unit/scenes/MinigameFlow.test.ts` (order of steps, panel after a loss,
-  buildings without a minigame), `tests/unit/scenes/MainScene.test.ts` ("with a minigame":
+  buildings without a minigame), `tests/unit/game/minigames/ChoiceButton.test.ts`,
+  `tests/unit/game/minigames/shuffle.test.ts`, `tests/unit/scenes/minigames/registry.test.ts`,
+  `tests/unit/scenes/MainScene.test.ts` ("with a minigame":
   in reach, too far, card held, other buildings, card after a win only)
 - **Limits:**
   - The result is reported by the client, so a modified client could fake a win (accepted in
@@ -716,7 +805,7 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 - **What:** opening SKILLS from up close (F-070) plays it. Words fall from the top of the
   board; a basket moved with ←/→ (Q/D, A/D) or the mouse catches them. The dev's real stack
-  scores 1 point, anything else costs 2 (never below 0). 12 points within 40 s wins the
+  scores 1 point, anything else costs 2 (never below 0). 6 points within 40 s wins the
   "Stack principale" card (F-031); time out or Escape is a loss. The CV panel opens either way.
 - **Design:** GAME_DESIGN.md › "Skills Park: buzzword catcher".
 - **How it works:**
@@ -751,21 +840,57 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ### F-072 Experience Avenue: career timeline
 
-💡 Idea
+✅ Done (phase 4)
 
-- **What:** drag job cards into chronological order. Teaches the career path.
+- **What:** opening EXPERIENCE from up close (F-070) plays it. Five random jobs from the CV,
+  labelled "Company — role", are shown shuffled; the visitor taps them from oldest to newest.
+  A wrong pick is marked ✗ until the next pick. 3 mistakes or 60 s is a loss; placing all five
+  wins the "Séniorité" card (F-031). The CV panel opens either way.
+- **Design:** GAME_DESIGN.md › "Experience Avenue: career timeline". Built as "tap the jobs
+  from oldest to newest" rather than dragging cards, so the cards are accessible buttons.
+- **How it works:**
+  - `timelineRules.ts` is pure: `timelineCards` draws and shuffles the jobs, `pickJob`
+    says right, wrong or ignored (jobs starting the same month are interchangeable),
+    `timelineOutcome` says playing, won or lost. Frames are capped at 0.1 s. Tuning values are
+    in `TIMELINE_RULES`.
+  - `CareerTimeline` implements `Minigame` with `ChoiceButton`s, so Tab + Enter plays it.
+    `careerTimeline(cv)` is registered for `experience`.
+- **Code:** `src/game/minigames/careerTimeline/timelineRules.ts`, `CareerTimeline.ts`,
+  `src/scenes/minigames/registry.ts`
+- **Tests:** `tests/unit/game/minigames/careerTimeline/timelineRules.test.ts`,
+  `CareerTimeline.test.ts`; e2e `tests/e2e/intel.spec.ts` ("winning a building's minigame up
+  close earns its card", through the accessibility buttons)
+- **Limits:** there is no replay once the card is held.
 
 ### F-073 Projects Lab: match-up
 
 💡 Idea
 
 - **What:** match each project to its technology and description.
+- **Blocked:** the CV has no projects yet; the owner chose to skip it for now.
 
 ### F-074 Education Campus: quiz
 
-💡 Idea
+✅ Done (phase 4)
 
-- **What:** three quick multiple-choice questions about the education section.
+- **What:** opening EDUCATION from up close (F-070) plays a three-question multiple-choice
+  quiz about the education section: the diploma, the school and the languages. The wrong
+  answers are jokes. 2 right answers out of 3 win the "Formation & langues" card (F-031). The
+  right answer shows for 1.5 s after each pick. The CV panel opens either way.
+- **Design:** GAME_DESIGN.md › "Education Campus: quiz".
+- **How it works:**
+  - `quizRules.ts` is pure: `quizQuestions(cv)` builds the questions from the CV, so they
+    never disagree with it, and skips a question the CV has no data for. Tuning values are in
+    `QUIZ_RULES`.
+  - `EducationQuiz` implements `Minigame` with `ChoiceButton`s. `educationQuiz(cv)` is
+    registered for `education`.
+- **Code:** `src/game/minigames/educationQuiz/quizRules.ts`, `EducationQuiz.ts`,
+  `src/scenes/minigames/registry.ts`, `shared/intel.ts`, `src/content/intel.ts`
+- **Tests:** `tests/unit/game/minigames/educationQuiz/quizRules.test.ts`,
+  `EducationQuiz.test.ts`, `tests/unit/content/intel.test.ts`, `tests/unit/shared/intel.test.ts`,
+  `tests/unit/ui/IntelInventory.test.ts`. No e2e test.
+- **Limits:** the questions are in English, the answers in French (as in the CV). There is no
+  replay once the card is held.
 
 ## Delivery & deployment
 

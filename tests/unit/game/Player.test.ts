@@ -227,4 +227,30 @@ describe("Player", () => {
       expect(labelColours()).toEqual([THEMES[2].label, THEMES[2].label]);
     });
   });
+
+  // F-063
+  describe("slowed down by spam", () => {
+    it("walks at the given share of its speed", () => {
+      player.setSpeedFactor(0.5);
+
+      pressKey("ArrowRight");
+      player.update(FRAME);
+      releaseKey("ArrowRight");
+
+      expect(player.getGridPosition().column).toBeCloseTo(
+        SPAWN.column + STEP / 2,
+      );
+    });
+
+    it("walks at full speed again once recovered", () => {
+      player.setSpeedFactor(0.5);
+      player.setSpeedFactor(1);
+
+      pressKey("ArrowRight");
+      player.update(FRAME);
+      releaseKey("ArrowRight");
+
+      expect(player.getGridPosition().column).toBeCloseTo(SPAWN.column + STEP);
+    });
+  });
 });

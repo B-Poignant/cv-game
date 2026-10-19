@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { Container } from "pixi.js";
+import { Container, Text } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CvRoom } from "../../../server/rooms/CvRoom";
@@ -61,7 +61,9 @@ describe("RemoteDev", () => {
     remoteDev.applyTheme(theme);
 
     await vi.waitFor(() => expect(remoteDev.character).toBeDefined());
-    const label = remoteDev.character?.children.at(-1);
+    const label = remoteDev.character?.children.find(
+      (child) => child instanceof Text && child.text === "Ben",
+    );
     expect(label).toMatchObject({ style: { fill: theme.label } });
   });
 
@@ -72,5 +74,20 @@ describe("RemoteDev", () => {
     remoteDev.destroy();
 
     expect(devs()).toHaveLength(0);
+  });
+
+  // F-062
+  it("knows where Ben is, and shows what he says above him", async () => {
+    const { me, remoteDev, devs } = await joinAsMe();
+
+    await vi.waitFor(() => expect(devs()).toHaveLength(1));
+    remoteDev.say("Bye!");
+    remoteDev.update(0.1);
+
+    expect(remoteDev.gridPosition).toEqual({
+      column: me.state.dev.column,
+      row: me.state.dev.row,
+    });
+    expect(devs()[0].speech).toBe("Bye!");
   });
 });

@@ -34,8 +34,13 @@ export default defineConfig({
       command: "npm run server",
       port: SERVER_PORT,
       reuseExistingServer: false,
-      // The dev stands still, so a canvas only changes when a visitor moves (F-060).
-      env: { PORT: String(SERVER_PORT), DEV_WANDERS: "false" },
+      // The dev stands still, so a canvas only changes when a visitor moves (F-060), and no
+      // spam email flies by to slow a scripted walk down (F-063).
+      env: {
+        PORT: String(SERVER_PORT),
+        DEV_WANDERS: "false",
+        SPAM_FLIES: "false",
+      },
     },
     {
       command: `npm run dev -- --port ${CLIENT_PORT} --strictPort`,

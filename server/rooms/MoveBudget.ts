@@ -5,7 +5,7 @@
  */
 export class MoveBudget {
   private readonly capacity: number;
-  private readonly refillPerSecond: number;
+  private refillPerSecond: number;
   private available: number;
   private lastRefillMs: number;
 
@@ -27,6 +27,15 @@ export class MoveBudget {
     this.available -= distance;
 
     return true;
+  }
+
+  /**
+   * Changes how fast the budget refills from `nowMs` on (a spam hit slows a recruiter down,
+   * F-063). Time already passed still refills at the old rate.
+   */
+  public setRefillRate(refillPerSecond: number, nowMs: number): void {
+    this.refill(nowMs);
+    this.refillPerSecond = refillPerSecond;
   }
 
   private refill(nowMs: number): void {
