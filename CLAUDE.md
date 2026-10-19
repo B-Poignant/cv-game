@@ -15,7 +15,8 @@ tile map and enter buildings (Experience, Skills, Projects, Education) to read C
 ```bash
 npm run dev          # Vite client on http://localhost:5173
 npm run server       # Colyseus server on ws://localhost:2567 (needed for multiplayer)
-npm run build        # client into dist/ + server into build/server/
+npm run build        # client into dist/ + the /cv page + server into build/server/
+npm run cv:html      # writes the classic HTML CV page to dist/cv/index.html (F-032)
 npm start            # production server: game + rooms on PORT (default 2567)
 npm test             # unit + integration tests (Vitest)
 npm run test:unit    # fast unit tests only
@@ -46,6 +47,8 @@ src/
                      AchievementToast (F-041)
   domain/            plain CV data types (Experience, Skill, Project, Education), no Pixi
   config/            client-only static data (themes.ts palettes, achievements.ts, devLines.ts)
+  cvPage/            the classic HTML CV page (F-032): pure string building, no DOM or Pixi;
+                     built by scripts/buildCvPage.ts (npm run cv:html)
   content/           cv.ts: the real CV (French), typed by domain/Cv.ts; intel.ts: card texts;
                      contact.ts: the owner's contact details (F-043)
   network/           Colyseus client, remote player + dev sync, LocalIntel (own cards),
@@ -67,6 +70,7 @@ server/
   rooms/             CvRoom (move validation, dev loop, catch + pitch), MoveBudget (speed
                      limit), DevWanderer + flee (the dev's movement), SpamStorm (the spam emails),
                      PitchTracker (who may pitch, cooldowns), CvRoomState (schema)
+scripts/             buildCvPage.ts: writes dist/cv/index.html (npm run cv:html)
 tests/
   unit/              mirrors src/ (pure logic, Pixi classes via happy-dom)
   integration/       real Colyseus server + real clients
@@ -175,6 +179,7 @@ Use these instead of improvising, so the work is done the same way every time.
 | Add / upgrade / remove an npm package      | `add-dependency` skill                                   |
 | Install a Claude plugin / MCP / skill pack | `add-plugin` skill                                       |
 | Update the CV from the owner's LinkedIn    | `sync-cv` skill                                          |
+| Generate / refresh the classic HTML CV     | `generate-cv-html` skill                                 |
 | Commit / push                              | `commit` skill                                           |
 | Cut a release                              | `release` skill                                          |
 | Audit docs ↔ code drift, test gaps         | `project-auditor` agent                                  |

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && npm run build:server",
+    "build": "tsc && vite build && npm run cv:html && npm run build:server",
     "preview": "vite preview",
     "format": "prettier . --write",
     "test": "vitest run",
@@ -21,7 +21,8 @@
     "test:e2e": "playwright test",
     "test:all": "npm run test:coverage && npm run test:e2e",
     "build:server": "vite build --config vite.server.config.ts",
-    "start": "node build/server/index.js"
+    "start": "node build/server/index.js",
+    "cv:html": "tsx scripts/buildCvPage.ts"
   },
   "devDependencies": {
     "@colyseus/testing": "^0.18.6",

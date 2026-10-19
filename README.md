@@ -18,7 +18,7 @@ is, and the winner gets his real contact details and CV. The full story and rule
 > minigame first), and with 3 cards you can catch him and pitch him a job; a good pitch shows
 > his contact details and CV. Ben taunts you in speech bubbles, spam emails slow you down, and
 > five achievements are up for grabs. Only the Projects Lab minigame is missing (the CV has
-> no projects yet).
+> no projects yet). Prefer to skip the game? A classic HTML CV is served at `/cv/`.
 
 ## Features
 
@@ -42,6 +42,7 @@ is, and the winner gets his real contact details and CV. The full story and rule
 - Ben speaks in speech bubbles, and "exciting opportunity" spam emails fly across the map
   and slow you down
 - Achievements (🏆, under the theme button) with a toast when you unlock one
+- A classic HTML CV page at `/cv/` (`npm run cv:html`), for visitors who'd rather skip the game
 - Catch Ben with 3 intel cards and pitch him an offer (stack, work mode, role, opening
   line); the server scores it against his real preferences, and a good pitch reveals how
   to contact him
@@ -103,23 +104,24 @@ another host. `GET /health` answers `{ "status": "ok" }`.
 
 ## Scripts
 
-| Command                                    | What it does                                                                  |
-| ------------------------------------------ | ----------------------------------------------------------------------------- |
-| `npm run dev`                              | Start the Vite dev server with hot reload                                     |
-| `npm run server`                           | Start the Colyseus multiplayer server                                         |
-| `npm run build`                            | Type-check, build the client into `dist/` and the server into `build/server/` |
-| `npm run build:server`                     | Build only the server (Vite SSR, `vite.server.config.ts`)                     |
-| `npm start`                                | Run the production server (game + rooms on `PORT`, default 2567)              |
-| `npm run preview`                          | Serve the client build alone (no multiplayer)                                 |
-| `npm test`                                 | Unit + integration tests                                                      |
-| `npm run test:unit` / `test:integration`   | One test level only                                                           |
-| `npm run test:watch`                       | Unit tests in watch mode                                                      |
-| `npm run test:coverage`                    | Tests with coverage report (`coverage/index.html`)                            |
-| `npm run test:e2e`                         | Browser tests with Playwright (starts server + client)                        |
-| `npm run test:all`                         | Coverage tests, then e2e                                                      |
-| `npm run typecheck`                        | TypeScript over `src/`, `server/`, `shared/`, `tests/`                        |
-| `npm run check`                            | Typecheck, lint, format check and tests: run before committing                |
-| `npm run lint` / `format` / `format:check` | ESLint / Prettier (write) / Prettier (check only)                             |
+| Command                                    | What it does                                                                                  |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `npm run dev`                              | Start the Vite dev server with hot reload                                                     |
+| `npm run server`                           | Start the Colyseus multiplayer server                                                         |
+| `npm run build`                            | Type-check, build the client into `dist/`, the `/cv` page and the server into `build/server/` |
+| `npm run cv:html`                          | Write the classic HTML CV page to `dist/cv/index.html` (or a path you pass)                   |
+| `npm run build:server`                     | Build only the server (Vite SSR, `vite.server.config.ts`)                                     |
+| `npm start`                                | Run the production server (game + rooms on `PORT`, default 2567)                              |
+| `npm run preview`                          | Serve the client build alone (no multiplayer)                                                 |
+| `npm test`                                 | Unit + integration tests                                                                      |
+| `npm run test:unit` / `test:integration`   | One test level only                                                                           |
+| `npm run test:watch`                       | Unit tests in watch mode                                                                      |
+| `npm run test:coverage`                    | Tests with coverage report (`coverage/index.html`)                                            |
+| `npm run test:e2e`                         | Browser tests with Playwright (starts server + client)                                        |
+| `npm run test:all`                         | Coverage tests, then e2e                                                                      |
+| `npm run typecheck`                        | TypeScript over `src/`, `server/`, `shared/`, `tests/`                                        |
+| `npm run check`                            | Typecheck, lint, format check and tests: run before committing                                |
+| `npm run lint` / `format` / `format:check` | ESLint / Prettier (write) / Prettier (check only)                                             |
 
 The first time you run the browser tests, install Chromium with `npx playwright install chromium`.
 
@@ -132,10 +134,12 @@ src/                 game client
   scenes/            Pixi scenes (MainScene is the world)
   network/           Colyseus client and remote player sync
   ui/                HTML over the canvas: CV panels, dialogs, achievements
+  cvPage/            the classic HTML CV page (string building)
   domain/            CV data types (Cv, Experience, Skill, Education, …)
   content/           the real CV content (French)
   config/            client data (theme palettes)
 shared/              rules shared by client and server (map, buildings, preferences, spam)
+scripts/             buildCvPage.ts (npm run cv:html)
 server/              Colyseus server
   rooms/             CvRoom (movement rules), the dev and spam logic, and the synced state
 tests/
@@ -190,6 +194,7 @@ recurring tasks the same way every time:
   - `/add-dependency`: add or upgrade npm packages safely
   - `/add-plugin`: check where a Claude plugin comes from and what it does before installing it
   - `/sync-cv`: update the CV from your LinkedIn export (or profile PDF), change by change
+  - `/generate-cv-html`: regenerate the classic HTML CV page, after a CV sync if needed
   - `/commit`: scope, secrets, identity and checks before a commit or push
   - `/release`: version bump, changelog and tag
 - **Agents** (`.claude/agents/`): `docs-keeper` updates docs without filling the main

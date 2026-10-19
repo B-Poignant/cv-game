@@ -265,6 +265,17 @@ canvas {
   border: 1px solid #7c3aed;
 }
 
+/* F-032: the way out to the classic HTML CV. */
+.identity-panel__skip {
+  margin: 16px 0 0;
+  color: #9ca3af;
+}
+
+.identity-panel__skip a {
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
 .identity-panel__reroll:hover,
 .identity-panel__reroll:focus-visible {
   background: rgb(255 255 255 / 10%);

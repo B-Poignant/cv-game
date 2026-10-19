@@ -41,6 +41,7 @@ it, or unscheduled).
 | **CV content**                                      |                                          |        |          |                                                                                                           |                        |
 | [F-030](#f-030-cv-content-and-section-panels)       | CV content + section panels              | ✅     | 1        | `src/content/`, `src/ui/CvPanel.ts`, `src/ui/cvSections.ts`                                               | unit, e2e              |
 | [F-031](#f-031-intel-cards)                         | Intel cards                              | ✅     | 2        | `shared/intel.ts`, `src/content/intel.ts`, `src/ui/IntelInventory.ts`, `src/network/LocalIntel.ts`        | unit, integration, e2e |
+| [F-032](#f-032-classic-html-cv-page)                | Classic HTML CV page (`/cv`)             | ✅     | —        | `src/cvPage/`, `scripts/buildCvPage.ts`, `vite.config.ts`                                                 | unit, e2e              |
 | **Interactions**                                    |                                          |        |          |                                                                                                           |                        |
 | [F-040](#f-040-clickable-chest)                     | Clickable chest on the map               | 🚧     | —        | `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`                                | unit, integration      |
 | [F-041](#f-041-achievements)                        | Achievements                             | ✅     | 4        | `src/config/achievements.ts`, `src/game/AchievementTracker.ts`, `src/ui/AchievementsPanel.ts`             | unit                   |
@@ -396,6 +397,40 @@ at any point, in ID order, and should land before the game is shared publicly.
   - The card texts ship in the client bundle, so a curious visitor can read them in the
     source. They're public CV facts, so that's accepted.
   - The pitch (F-042) only checks how many cards a recruiter holds, not which ones.
+
+### F-032 Classic HTML CV page
+
+✅ Done
+
+- **What:** a classic, readable CV page at `/cv/`, for visitors who'd rather skip the game
+  (recruiters in a hurry, printing, phones). The arrival panel (F-012) links to it ("In a
+  hurry? Skip the game and read the classic CV."); the page links back ("Jouer à Headhunted →").
+  In French, like the CV.
+- **How it works:**
+  - The content comes from `src/content/cv.ts` and `contact.ts`, not from the PDF: a PDF
+    change goes through the `sync-cv` skill first.
+  - `npm run cv:html` (`scripts/buildCvPage.ts`, optional output path argument) writes
+    `dist/cv/index.html`. `npm run build` runs it after the Vite build, so the server and the
+    Docker image serve it at `/cv/` (F-080). `npm run dev` serves it live at `/cv/` through a
+    plugin in `vite.config.ts`, rendered on each request. The `generate-cv-html` skill covers
+    the workflow.
+  - `src/cvPage/` is pure string building (no DOM, no Pixi): `html.ts` is an escaping
+    builder, `cvPageSections.ts` writes the sections, `cvPageStyles.ts` the CSS and
+    `renderCvPage.ts` assembles the page.
+  - Style: echoes the game. District and building colours are the section accents, with
+    isometric tiles, a map emblem, letter-spaced monospace labels, light and dark colour
+    schemes, an A4 print layout and a phone layout. Fonts (Bricolage Grotesque, IBM Plex
+    Sans and Mono) load from Google Fonts.
+  - `IdentityPanel` shows the link (`CV_PAGE_URL`).
+- **Code:** `src/cvPage/html.ts`, `src/cvPage/cvPageSections.ts`, `src/cvPage/cvPageStyles.ts`,
+  `src/cvPage/renderCvPage.ts`, `scripts/buildCvPage.ts`, `vite.config.ts`,
+  `src/ui/IdentityPanel.ts`, `.claude/skills/generate-cv-html/SKILL.md`
+- **Tests:** `tests/unit/cvPage/html.test.ts`, `tests/unit/cvPage/renderCvPage.test.ts`,
+  `tests/unit/ui/IdentityPanel.test.ts` (the link); e2e `tests/e2e/cv-page.spec.ts`
+- **Limits:**
+  - The profile name is "Ben", as in `cv.ts` (the CV data has no full name).
+  - Fonts load from Google; offline, system fonts take over.
+  - The page is generated, not committed: it exists after `npm run build` or `npm run cv:html`.
 
 ## Interactions
 

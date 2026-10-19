@@ -8,6 +8,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Added
 
+- F-032: a classic HTML CV page at `/cv/`, generated from the CV content by
+  `npm run cv:html` (also run by `npm run build`, and served live by `npm run dev`). The
+  arrival panel links to it for visitors who'd rather skip the game.
 - F-041: five achievements ("Hired the dev", "Read the whole CV", "Found the chest", "Hired in
   under 2 minutes", "Pitched like a pro") with a toast, a chat message, and a 🏆 list under the
   theme button. Unlocks are kept in the browser.

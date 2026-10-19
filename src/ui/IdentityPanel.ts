@@ -6,6 +6,9 @@ import {
   type RecruiterIdentity,
 } from "../../shared/recruiters";
 
+/** The classic HTML CV (F-032), for visitors who'd rather read than play. */
+export const CV_PAGE_URL = "/cv/";
+
 /**
  * The arrival panel (F-012): "Who are you today?", prefilled with a random recruiter.
  * 🎲 picks another one, Start enters the game. Styled in style.css (reuses the CV panel look).
@@ -73,6 +76,13 @@ export class IdentityPanel {
     actions.className = "identity-panel__actions";
     actions.append(reroll, start);
 
+    const skip = document.createElement("p");
+    skip.className = "identity-panel__skip";
+    const cvLink = document.createElement("a");
+    cvLink.href = CV_PAGE_URL;
+    cvLink.textContent = "read the classic CV";
+    skip.append("In a hurry? Skip the game and ", cvLink, ".");
+
     this.form.append(
       title,
       intro,
@@ -80,6 +90,7 @@ export class IdentityPanel {
       createField("Company", this.companyInput),
       this.error,
       actions,
+      skip,
     );
     this.element.append(this.form);
 

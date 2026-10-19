@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { DEFAULT_RECRUITERS } from "../../../shared/recruiters";
-import { IdentityPanel } from "../../../src/ui/IdentityPanel";
+import { CV_PAGE_URL, IdentityPanel } from "../../../src/ui/IdentityPanel";
 
 /** Returns the given values in order, then repeats the last one. */
 function scripted(...values: number[]): () => number {
@@ -41,6 +41,17 @@ describe("IdentityPanel", () => {
       document.getElementById(dialog.getAttribute("aria-labelledby")!)
         ?.textContent,
     ).toBe("Who are you today?");
+  });
+
+  // F-032
+  it("offers the classic CV to visitors who'd rather read than play", () => {
+    const { dialog } = createPanel();
+
+    const link = [...dialog.querySelectorAll("a")].find(
+      (anchor) => anchor.textContent === "read the classic CV",
+    );
+
+    expect(link?.getAttribute("href")).toBe(CV_PAGE_URL);
   });
 
   it("opens prefilled with a random recruiter, name focused", () => {

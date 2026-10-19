@@ -46,6 +46,7 @@ flowchart LR
 | `src/domain/`  | plain CV data types                                         | `domain/`, `shared/`                                                              | anything else in `src/`, Pixi, Colyseus               |
 | `src/content/` | the real CV data (`cv.ts`) and its formatting               | `domain/`, `shared/`                                                              | Pixi                                                  |
 | `src/config/`  | client-only static data (themes, achievements, Ben's lines) | `shared/`, `domain/`                                                              | Pixi                                                  |
+| `src/cvPage/`  | the classic HTML CV page (F-032): pure string building      | `content/`, `domain/`, `shared/`                                                  | Pixi, DOM, `scenes/`, `ui/`                           |
 | `src/game/`    | engine: Pixi objects, map, camera, player, entities         | `shared/`, `domain/`, `config/`, Pixi                                             | `ui/`, `network/` (except `Game`, which wires it all) |
 | `src/network/` | Colyseus client and remote players                          | `game/`, `shared/`, `@colyseus/sdk`, server types via `import type`               | server code at runtime, the `colyseus` package        |
 | `src/scenes/`  | Pixi containers that put the world together                 | `game/`, `network/`, `shared/`, `config/`, `domain/`                              | `ui/`                                                 |
