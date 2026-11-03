@@ -80,6 +80,7 @@ docs/
   FEATURES.md        feature registry: every feature, its status and how it works
   ARCHITECTURE.md    layers + import rules, data flow, how to extend, known debts
   CODE_STYLE.md      naming, TypeScript, async, Pixi, DOM and comment rules
+  reviews/           whole-project review reports (review-project skill), one per date
 .claude/
   skills/            repeatable workflows (see "Skills and agents")
   agents/            docs-keeper, project-auditor
@@ -183,6 +184,7 @@ Use these instead of improvising, so the work is done the same way every time.
 | Commit / push                              | `commit` skill                                           |
 | Cut a release                              | `release` skill                                          |
 | Audit docs ↔ code drift, test gaps         | `project-auditor` agent                                  |
+| Review the whole codebase (not a diff)     | `review-project` skill (report only)                     |
 
 When you notice a new task the team keeps repeating, propose turning it into a skill in
 `.claude/skills/<name>/SKILL.md`.
