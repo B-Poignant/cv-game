@@ -149,7 +149,9 @@ background, `GameMap.applyTheme`, `Building.applyTheme`, `<html data-theme>`.
    `ThemeCycle` and `ThemeButton`, and adds `update` to the ticker.
 3. `MainScene` builds the map, buildings, chest, player and camera, then connects to the
    server in the background. If that fails, it logs the error and the game stays
-   single-player (F-023).
+   single-player (F-023). If the connection drops later, `MultiplayerClient` calls the `onLost`
+   it was given: `MainScene.connectionLost` removes the remote entities and `Game` closes an
+   open pitch dialog and posts a notice.
 4. **Each frame:** `Game.update` → `MinigameScene.update` (the running minigame, if any) and
    `MainScene.update` → `Player.update` (unless paused) and
    depth sorting (`zIndex = y`).

@@ -153,6 +153,10 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-023: losing the connection mid-game left the other visitors, Ben and the spam emails
+  frozen on screen, a slowed visitor at half speed, and a pitch dialog waiting forever, with
+  nothing said. They are now removed, the visitor walks on offline at full speed, an open
+  pitch dialog closes, and the chat log says to reload to rejoin.
 - F-010: a key held while switching windows (Alt-Tab) stayed pressed, so the recruiter kept
   walking on their own. Keys are released when the window loses focus or the tab is hidden;
   the skill breakout's paddle too.

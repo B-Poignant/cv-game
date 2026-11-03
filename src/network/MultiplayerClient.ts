@@ -19,8 +19,14 @@ export class MultiplayerClient {
     this.client = new Client(endpoint);
   }
 
-  /** Joins the shared room as `identity` (F-012). The server validates it. */
-  public async connect(identity?: RecruiterIdentity): Promise<void> {
+  /**
+   * Joins the shared room as `identity` (F-012). The server validates it. `onLost` is called
+   * if the connection drops later (F-023), but not after `disconnect()`.
+   */
+  public async connect(
+    identity?: RecruiterIdentity,
+    onLost?: () => void,
+  ): Promise<void> {
     if (this.room) {
       return;
     }
@@ -42,8 +48,10 @@ export class MultiplayerClient {
           code,
         });
 
+        // `disconnect()` forgets the room first, so only an unexpected leave gets here.
         if (this.room === room) {
           this.room = undefined;
+          onLost?.();
         }
       });
 

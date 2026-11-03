@@ -5,7 +5,7 @@ import { testPort, useColyseusServer } from "../../helpers/colyseus";
 
 // Real client against the real server, over a real WebSocket.
 describe("MultiplayerClient", () => {
-  useColyseusServer();
+  const colyseus = useColyseusServer();
 
   const endpoint = () => `http://localhost:${testPort()}`;
 
@@ -23,6 +23,30 @@ describe("MultiplayerClient", () => {
       });
     });
     await client.disconnect();
+  });
+
+  // F-023
+  it("reports a connection lost mid-game, and is disconnected afterwards", async () => {
+    const onLost = vi.fn();
+    const client = new MultiplayerClient(endpoint());
+    await client.connect(undefined, onLost);
+    const { roomId } = client.getRoom();
+
+    await colyseus().getRoomById(roomId).disconnect();
+
+    await vi.waitFor(() => expect(onLost).toHaveBeenCalledOnce());
+    expect(client.isConnected()).toBe(false);
+  });
+
+  it("doesn't report a leave it asked for as a lost connection", async () => {
+    const onLost = vi.fn();
+    const client = new MultiplayerClient(endpoint());
+    await client.connect(undefined, onLost);
+
+    await client.disconnect();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(onLost).not.toHaveBeenCalled();
   });
 
   it("starts disconnected", () => {

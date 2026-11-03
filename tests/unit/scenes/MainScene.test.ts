@@ -39,21 +39,28 @@ const network = vi.hoisted(() => ({
   connected: false,
   send: vi.fn(),
   disconnect: vi.fn(async () => {}),
+  /** What the scene passed to `connect` to hear about a lost connection (F-023). */
+  onLost: undefined as (() => void) | undefined,
 }));
 
 vi.mock("../../../src/network/MultiplayerClient", () => ({
   MultiplayerClient: class {
-    connect = (identity?: RecruiterIdentity) => network.connect(identity);
+    connect = (identity?: RecruiterIdentity, onLost?: () => void) => {
+      network.onLost = onLost;
+      return network.connect(identity);
+    };
     isConnected = () => network.connected;
     getRoom = () => ({ send: network.send });
     disconnect = () => network.disconnect();
   },
 }));
 
+const remotePlayers = vi.hoisted(() => ({ destroy: vi.fn() }));
+
 vi.mock("../../../src/network/RemotePlayersManager", () => ({
   RemotePlayersManager: class {
     applyTheme() {}
-    destroy() {}
+    destroy = remotePlayers.destroy;
   },
 }));
 
@@ -695,6 +702,85 @@ describe("MainScene", () => {
       expect(network.send).toHaveBeenLastCalledWith("move", {
         column: expect.closeTo(PLAYER_SPAWN.column + 0.15),
         row: PLAYER_SPAWN.row,
+      });
+    });
+
+    // F-023: nothing from the server will move them again, so they must not stay frozen.
+    describe("when the connection is lost mid-game", () => {
+      async function lostConnection(options: MainSceneOptions = {}) {
+        network.connected = true;
+        network.connect.mockResolvedValue();
+        const created = createScene(fakeRenderer(), options);
+        created.scene.join(HOMER);
+        await vi.waitFor(() => expect(network.onLost).toBeDefined());
+        await vi.waitFor(() => expect(localIntel.onChange).toBeDefined());
+        for (const fake of [
+          remotePlayers,
+          remoteDev,
+          localIntel,
+          pitchChannel,
+          remoteSpam,
+        ]) {
+          fake.destroy.mockClear();
+        }
+
+        network.connected = false;
+        network.onLost?.();
+
+        return created;
+      }
+
+      it("removes the other visitors, Ben and the spam emails", async () => {
+        await lostConnection();
+
+        expect(remotePlayers.destroy).toHaveBeenCalledOnce();
+        expect(remoteDev.destroy).toHaveBeenCalledOnce();
+        expect(remoteSpam.destroy).toHaveBeenCalledOnce();
+        expect(localIntel.destroy).toHaveBeenCalledOnce();
+        expect(pitchChannel.destroy).toHaveBeenCalledOnce();
+      });
+
+      it("walks at full speed again if spam had slowed the visitor", async () => {
+        const onSlowedChange = vi.fn();
+        network.connected = true;
+        network.connect.mockResolvedValue();
+        const { scene, ofType } = createScene(fakeRenderer(), {
+          onSlowedChange,
+        });
+        scene.join(HOMER);
+        await vi.waitFor(() => expect(remoteSpam.onSlowedChange).toBeDefined());
+        serverSetsSlowed(true);
+
+        network.connected = false;
+        network.onLost?.();
+
+        const [player] = ofType(Player);
+        const start = player.getGridPosition().column;
+        pressKey("ArrowRight");
+        scene.update(0.1);
+        releaseKey("ArrowRight");
+        expect(player.getGridPosition().column - start).toBeCloseTo(0.3);
+        expect(onSlowedChange).toHaveBeenLastCalledWith(false);
+      });
+
+      it("tells the game, so it can tell the visitor", async () => {
+        const onConnectionLost = vi.fn();
+
+        await lostConnection({ onConnectionLost });
+
+        expect(onConnectionLost).toHaveBeenCalledOnce();
+      });
+
+      it("keeps the visitor walking, offline", async () => {
+        const { scene, ofType } = await lostConnection();
+        const [player] = ofType(Player);
+        const start = player.getGridPosition().column;
+
+        pressKey("ArrowRight");
+        scene.update(0.1);
+        releaseKey("ArrowRight");
+
+        expect(player.getGridPosition().column).toBeGreaterThan(start);
       });
     });
 

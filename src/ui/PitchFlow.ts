@@ -38,6 +38,16 @@ export class PitchFlow {
     };
   }
 
+  /**
+   * The connection dropped (F-023): no answer will come, so an open dialog closes. Closing
+   * settles whatever stage it was in (choosing, waiting or a result), which resumes the game.
+   */
+  public connectionLost(): void {
+    if (this.dialog.isOpen) {
+      this.dialog.close();
+    }
+  }
+
   public handle(event: PitchEvent): void {
     switch (event.type) {
       case "open":

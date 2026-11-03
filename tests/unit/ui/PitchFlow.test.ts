@@ -116,6 +116,32 @@ describe("PitchFlow", () => {
     expect(host.setPaused).toHaveBeenLastCalledWith(false);
   });
 
+  // F-023: no answer or refusal will ever come, whatever the dialog shows.
+  it.each(["choosing", "waiting"])(
+    "closes the dialog and resumes the game when the connection is lost while %s",
+    async (stage) => {
+      const { host, dialog, flow, pick, button } = createFlow();
+      if (stage === "waiting") {
+        await sendOffer(flow, pick, button, host);
+      } else {
+        flow.handle({ type: "open" });
+      }
+
+      flow.connectionLost();
+
+      await vi.waitFor(() => expect(dialog.isOpen).toBe(false));
+      expect(host.setPaused).toHaveBeenLastCalledWith(false);
+    },
+  );
+
+  it("does nothing when the connection is lost with the dialog closed", () => {
+    const { host, flow } = createFlow();
+
+    flow.connectionLost();
+
+    expect(host.setPaused).not.toHaveBeenCalled();
+  });
+
   it("posts a refusal as Ben's line", () => {
     const { say, flow, dialog } = createFlow();
 

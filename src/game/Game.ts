@@ -91,6 +91,12 @@ export class Game {
           });
         }
       },
+      onConnectionLost: () => {
+        pitchFlow.connectionLost();
+        chatLog.post({
+          text: "Connection lost: you're playing offline. Reload the page to rejoin.",
+        });
+      },
     });
     const minigameScene = new MinigameScene(this.app.renderer);
     this.minigameScene = minigameScene;

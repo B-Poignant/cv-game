@@ -321,11 +321,30 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ✅ Done
 
-- **What:** the game stays playable when the multiplayer server is down.
-- **How it works:** `MainScene.initializeMultiplayer` catches connection errors and logs
-  them. `sendPlayerPosition` does nothing while disconnected.
-- **Code:** `src/scenes/MainScene.ts`
-- **Tests:** `tests/unit/scenes/MainScene.test.ts` ("stays playable when the server is unreachable", network faked)
+- **What:** the game stays playable when the multiplayer server is down at start, or when
+  the connection drops mid-game: the visitor walks on alone, offline, and the chat log says
+  so ("Connection lost: you're playing offline. Reload the page to rejoin.").
+- **How it works:**
+  - At start, `MainScene.initializeMultiplayer` catches connection errors and logs them.
+    `sendPlayerPosition` does nothing while disconnected.
+  - Mid-game, `MultiplayerClient.connect(identity, onLost)` calls `onLost` when the room is
+    left without `disconnect()` having been called. `MainScene.connectionLost` then removes
+    the other visitors, Ben and the spam emails (nothing would move them again), stops
+    listening for cards and pitches, puts the visitor back at full speed if spam had slowed
+    them, and calls `onConnectionLost`. `Game` posts the notice and `PitchFlow.connectionLost`
+    closes an open pitch dialog, which resumes the map.
+- **Code:** `src/network/MultiplayerClient.ts`, `src/scenes/MainScene.ts`, `src/ui/PitchFlow.ts`,
+  `src/game/Game.ts`
+- **Tests:** `tests/unit/scenes/MainScene.test.ts` ("stays playable when the server is
+  unreachable", "when the connection is lost mid-game": entities removed, full speed again,
+  the game told, still walking; network faked), `tests/unit/ui/PitchFlow.test.ts` (dialog
+  closed while choosing or waiting), `tests/integration/network/MultiplayerClient.test.ts`
+  (a room closed by the server is reported, a requested leave isn't)
+- **Limits:**
+  - No automatic reconnection: intel cards live on the server, so a new session would start
+    from none. The visitor reloads to rejoin.
+  - Offline, buildings and minigames still work, but a win earns no card (the server gives
+    them), and the chest does nothing.
 
 ## CV content
 

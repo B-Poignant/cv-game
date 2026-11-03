@@ -51,6 +51,8 @@ export interface MainSceneOptions {
   onDevLine?: (line: string) => void;
   /** Called when a spam email slows the visitor down, and when they recover (F-063). */
   onSlowedChange?: (slowed: boolean) => void;
+  /** Called when the connection to the server drops mid-game (F-023): the visitor is offline. */
+  onConnectionLost?: () => void;
 }
 
 /** Starts buildings' minigames (F-070): `MinigameFlow`. */
@@ -151,7 +153,9 @@ export class MainScene extends Container {
     identity: RecruiterIdentity,
   ): Promise<void> {
     try {
-      await this.multiplayerClient.connect(identity);
+      await this.multiplayerClient.connect(identity, () => {
+        this.connectionLost();
+      });
 
       const room = this.multiplayerClient.getRoom();
 
@@ -414,14 +418,34 @@ export class MainScene extends Container {
     this.world.sortChildren();
   }
 
-  public destroy(options?: boolean): void {
-    this.renderer.off("resize", this.handleResize);
+  /**
+   * The server is gone (F-023): nothing will move the others, Ben or the emails again, so
+   * they go, and the visitor walks on alone at full speed. The cards they hold stay listed.
+   */
+  private connectionLost(): void {
+    this.removeRemoteEntities();
+    this.player.setSpeedFactor(1);
+    this.options.onSlowedChange?.(false);
+    this.options.onConnectionLost?.();
+  }
 
+  private removeRemoteEntities(): void {
     this.remotePlayersManager?.destroy();
     this.remoteDev?.destroy();
     this.localIntel?.destroy();
     this.pitchChannel?.destroy();
     this.remoteSpam?.destroy();
+    this.remotePlayersManager = undefined;
+    this.remoteDev = undefined;
+    this.localIntel = undefined;
+    this.pitchChannel = undefined;
+    this.remoteSpam = undefined;
+  }
+
+  public destroy(options?: boolean): void {
+    this.renderer.off("resize", this.handleResize);
+
+    this.removeRemoteEntities();
 
     void this.multiplayerClient.disconnect();
 
