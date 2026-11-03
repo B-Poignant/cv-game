@@ -32,11 +32,13 @@ import { RemotePlayersManager } from "../network/RemotePlayersManager";
 import { RemoteSpam } from "../network/RemoteSpam";
 
 export interface MainSceneOptions {
-  /** Called when the visitor opens a building (click, tap or Enter). */
+  /** Called when the visitor opens a building (click, tap or Enter) from within reach. */
   onBuildingSelected?: (section: CvSectionId) => void;
+  /** Called when the visitor tries to open a building from too far: it stays shut. */
+  onBuildingOutOfReach?: (section: CvSectionId) => void;
   /** Called with every intel card the visitor holds, once in the room and after each new one (F-031). */
   onIntelChange?: (cards: IntelCardId[]) => void;
-  /** Called when the visitor opens a building or the chest from too far to earn its card. */
+  /** Called when the visitor opens the chest from too far to earn its card. */
   onIntelOutOfReach?: (source: IntelSource) => void;
   /** Called when the server opens the pitch dialog, refuses a pitch or scores one (F-042). */
   onPitchEvent?: (event: PitchEvent) => void;
@@ -58,7 +60,7 @@ export class MainScene extends Container {
   private readonly renderer: Renderer;
   private readonly map: GameMap;
   private readonly districts: DistrictGround[] = [];
-  private readonly buildings: Building[] = [];
+  private readonly buildings = new Map<Building, CvSectionId>();
   private readonly player: Player;
   private readonly camera: Camera;
 
@@ -254,7 +256,7 @@ export class MainScene extends Container {
   }
 
   private addBuilding(building: Building, section: CvSectionId): void {
-    this.buildings.push(building);
+    this.buildings.set(building, section);
 
     const position = this.map.converter.toScreen(building.gridPosition);
 
@@ -276,11 +278,17 @@ export class MainScene extends Container {
   }
 
   /**
-   * Plays the building's minigame when there is one, the visitor stands within reach and
-   * doesn't hold its card yet (F-070). Otherwise the interim rule applies: the CV panel
-   * opens, and up close the card is earned straight away (F-031).
+   * A building opens only from within reach: from further away it stays shut and the visitor
+   * is told to get closer. Up close, it plays its minigame when it has one and the visitor
+   * doesn't hold its card yet (F-070). Otherwise the CV panel opens, and a building without
+   * a minigame gives its card straight away (F-031).
    */
   private openBuilding(section: CvSectionId): void {
+    if (!isWithinIntelReach(this.player.getGridPosition(), section)) {
+      this.options.onBuildingOutOfReach?.(section);
+      return;
+    }
+
     if (this.shouldPlayMinigame(section)) {
       void this.minigames?.start(section);
       return;
@@ -297,11 +305,7 @@ export class MainScene extends Container {
 
     const card = intelCardFrom(section);
 
-    if (card && this.intel.includes(card)) {
-      return false;
-    }
-
-    return isWithinIntelReach(this.player.getGridPosition(), section);
+    return !card || !this.intel.includes(card);
   }
 
   private createChest(): void {
@@ -331,7 +335,7 @@ export class MainScene extends Container {
       district.applyTheme(theme);
     }
 
-    for (const building of this.buildings) {
+    for (const building of this.buildings.keys()) {
       building.applyTheme(theme);
     }
 
@@ -357,7 +361,19 @@ export class MainScene extends Container {
     }
 
     this.remoteDev?.update(deltaSeconds);
+    this.updateBuildingCursors();
     this.updateDepth();
+  }
+
+  /** A building shows the pointer cursor only when it can be opened from here. */
+  private updateBuildingCursors(): void {
+    const position = this.player.getGridPosition();
+
+    for (const [building, section] of this.buildings) {
+      building.cursor = isWithinIntelReach(position, section)
+        ? "pointer"
+        : "default";
+    }
   }
 
   /** Ben taunts the visitor in a bubble (F-062), once his position has arrived. */

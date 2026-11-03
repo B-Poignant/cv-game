@@ -75,6 +75,70 @@ export async function buildingButton(page: Page, title: string) {
   return button;
 }
 
+type ArrowKey = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
+
+/**
+ * From the spawn (12, 12), a diagonal held for `diagonalMs`, then the first key alone for
+ * `straightMs` (diagonals run at ~2.1 tiles/s per axis, straight lines at 3). Each route ends
+ * within 2 tiles of its building, close enough to open it.
+ */
+const ROUTES: Record<
+  string,
+  { keys: [ArrowKey, ArrowKey]; diagonalMs: number; straightMs: number }
+> = {
+  // To about (8, 7); SKILLS covers columns 5–7, rows 5–6.
+  SKILLS: { keys: ["ArrowUp", "ArrowLeft"], diagonalMs: 1900, straightMs: 400 },
+  // To about (15, 7); EXPERIENCE covers columns 16–18, rows 5–6.
+  EXPERIENCE: {
+    keys: ["ArrowUp", "ArrowRight"],
+    diagonalMs: 1400,
+    straightMs: 700,
+  },
+  // To about (8, 17); EDUCATION covers columns 5–7, rows 17–18.
+  EDUCATION: {
+    keys: ["ArrowDown", "ArrowLeft"],
+    diagonalMs: 1900,
+    straightMs: 400,
+  },
+};
+
+/**
+ * Walks from the spawn to within reach of a building (they only open from up close). Waits
+ * for the server first, so it doesn't send the visitor back to the spawn.
+ */
+export async function walkToBuilding(
+  page: Page,
+  console: ConsoleRecorder,
+  title: string,
+): Promise<void> {
+  const { keys, diagonalMs, straightMs } = ROUTES[title];
+  await console.waitForLog("[MULTIPLAYER] Connected");
+
+  await page.keyboard.down(keys[0]);
+  await page.keyboard.down(keys[1]);
+  await page.waitForTimeout(diagonalMs);
+  await page.keyboard.up(keys[1]);
+  await page.waitForTimeout(straightMs);
+  await page.keyboard.up(keys[0]);
+}
+
+/**
+ * Opens a building's CV panel the shortest way: walk up to it, open it, and quit its
+ * minigame with Escape (the panel opens win or lose, F-070).
+ */
+export async function openSection(
+  page: Page,
+  console: ConsoleRecorder,
+  title: string,
+): Promise<void> {
+  await walkToBuilding(page, console, title);
+  await (await buildingButton(page, title)).press("Enter");
+  // The minigame is drawn on the canvas: give it a moment to start.
+  await page.waitForTimeout(300);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toBeVisible();
+}
+
 /**
  * `newVisitor()` opens a page in its own browser context, i.e. a separate visitor. Every
  * context is closed after the test, even a failed one, so no visitor stays in the shared room.

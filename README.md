@@ -92,15 +92,15 @@ another host. `GET /health` answers `{ "status": "ok" }`.
 
 ### Controls
 
-| Action          | Keys                                   |
-| --------------- | -------------------------------------- |
-| Move up         | `↑` · `Z` · `W`                        |
-| Move down       | `↓` · `S`                              |
-| Move left       | `←` · `Q` · `A`                        |
-| Move right      | `→` · `D`                              |
-| Open a building | Click it, or Tab to it and press Enter |
-| Close a panel   | Escape, ✕, or click outside            |
-| Theme           | Click 🎨 (top-left)                    |
+| Action          | Keys                                                                 |
+| --------------- | -------------------------------------------------------------------- |
+| Move up         | `↑` · `Z` · `W`                                                      |
+| Move down       | `↓` · `S`                                                            |
+| Move left       | `←` · `Q` · `A`                                                      |
+| Move right      | `→` · `D`                                                            |
+| Open a building | Walk up to it (2 tiles), then click it, or Tab to it and press Enter |
+| Close a panel   | Escape, ✕, or click outside                                          |
+| Theme           | Click 🎨 (top-left)                                                  |
 
 ## Scripts
 

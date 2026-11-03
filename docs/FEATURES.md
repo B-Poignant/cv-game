@@ -341,7 +341,8 @@ at any point, in ID order, and should land before the game is shared publicly.
   e2e `tests/e2e/cv-panels.spec.ts` (keyboard, mouse, closing, fits the window, scrolling)
 - **Limits:**
   - **Projects:** none listed yet.
-  - In the story, panels will open after a building's minigame (F-070); for now a click opens them.
+  - A building opens only from within 2 tiles (F-070): from further away it stays shut, so its
+    panel is read after its minigame, or straight away once its card is held.
 
 ### F-031 Intel cards
 
@@ -367,9 +368,10 @@ at any point, in ID order, and should land before the game is shared publicly.
     `INTEL_NEEDED_TO_PITCH` (3, fewer than the 4 cards), `INTEL_REACH` (2 tiles) and `isWithinIntelReach`: the distance
     from a position to the nearest tile of the building's footprint, or to the chest tile
     (`CHEST_POSITION` in `shared/world.ts`).
-  - Tapping a building or the chest calls `MainScene.collectIntel(source)`. Too far, it calls
-    `onIntelOutOfReach` ("Get closer to collect its intel.") and sends nothing; the CV panel
-    still opens. Close enough, it sends `collect-intel { source }`.
+  - Tapping the chest, winning a minigame, or opening a building without a minigame up close
+    calls `MainScene.collectIntel(source)`. Too far, it calls `onIntelOutOfReach` ("Get closer
+    to collect its intel.") and sends nothing. Close enough, it sends `collect-intel { source }`.
+    Buildings never get that far from afar: they stay shut (F-070).
   - `CvRoom` checks the source is known, the card isn't held yet and the player stands within
     reach, then pushes the card id to `PlayerState.intel` (an array, in the order earned).
     Anything else is ignored.
@@ -614,7 +616,7 @@ at any point, in ID order, and should land before the game is shared publicly.
 - **What:** a box in the bottom-left corner that keeps every message the game shows the
   visitor, newest at the bottom: Ben's lines ("**Ben**: Do you even know what I do?", his
   answers to a pitch) and game notices in italics ("New intel: Séniorité", "Get closer to
-  collect its intel.").
+  enter SKILLS.").
 - **How it works:** `ChatLog` (`src/ui/`) is an HTML `<aside aria-label="Messages">` with a
   `role="log"` list, hidden until the first message. `post({ speaker?, text })` appends a line
   built with `textContent` only, drops the oldest past `CHAT_LOG_LIMIT` (50) and scrolls to
@@ -804,10 +806,12 @@ at any point, in ID order, and should land before the game is shared publicly.
   - `ChoiceButton` (`src/game/minigames/`) is the accessible button the choice-based
     minigames share: Tab turns it into a real `<button>` named after its text, and a result
     shows as a ✓ or ✗ prefix, not by colour alone. `shuffle.ts` shuffles the options.
-  - `MainScene.openBuilding` plays the minigame only when the building has one, the visitor
-    stands within `INTEL_REACH` and doesn't hold its card. A building without a
-    minigame would keep the interim rule (panel + card up close); every building has one now,
-    but the code path stays. `minigameEnded` runs `collectIntel` after a win, so the server
+  - A building opens only from within `INTEL_REACH`: from further away, `MainScene.openBuilding`
+    calls `onBuildingOutOfReach` ("Get closer to enter SKILLS." in the chat log) and nothing
+    else, and `MainScene.update` shows the pointer cursor over a building only within reach.
+    Up close it plays the minigame when the building has one and the visitor doesn't hold its
+    card, and opens the panel otherwise. A building without a minigame would keep the interim
+    rule (panel + card up close); every building has one now, but the code path stays. `minigameEnded` runs `collectIntel` after a win, so the server
     still checks reach and duplicates.
   - `MinigameFlow` (`src/scenes/`, wired by `Game`, testable without WebGL) pauses and hides
     the map, plays, posts the result, calls `minigameEnded`, then opens the CV panel, whose
@@ -826,12 +830,15 @@ at any point, in ID order, and should land before the game is shared publicly.
   buildings without a minigame), `tests/unit/game/minigames/ChoiceButton.test.ts`,
   `tests/unit/game/minigames/shuffle.test.ts`, `tests/unit/scenes/minigames/registry.test.ts`,
   `tests/unit/scenes/MainScene.test.ts` ("with a minigame":
-  in reach, too far, card held, other buildings, card after a win only)
+  in reach, too far, card held, other buildings, card after a win only; "doesn't open a
+  building from too far", "shows a building as clickable only within reach"), e2e
+  `tests/e2e/intel.spec.ts` (a building stays shut from afar)
 - **Limits:**
   - The result is reported by the client, so a modified client could fake a win (accepted in
     GAME_DESIGN.md › "Technical principles"). The server still checks reach and duplicates.
-  - Too far from a building with a minigame, the panel opens as before with "Get closer to
-    collect its intel." There's no replay once the card is held.
+  - There's no replay once the card is held: up close, the panel opens straight away.
+  - From afar, Tab + Enter on a building only posts "Get closer…": the keyboard button stays
+    in the Tab order so its name doesn't change under the visitor.
   - Ben keeps running on the server while a minigame is played.
 
 ### F-071 Skills Park: skill breakout

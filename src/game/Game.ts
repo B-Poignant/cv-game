@@ -1,5 +1,6 @@
 import { Application, type Ticker } from "pixi.js";
 
+import { BUILDINGS, type CvSectionId } from "../../shared/buildings";
 import { DEFAULT_THEME, THEMES } from "../config/themes";
 import { MainScene } from "../scenes/MainScene";
 import { MinigameFlow } from "../scenes/MinigameFlow";
@@ -70,6 +71,10 @@ export class Game {
         intelInventory.update(cards);
         achievements.intelChanged(cards);
       },
+      onBuildingOutOfReach: (section) =>
+        chatLog.post({
+          text: `Get closer to enter ${buildingTitle(section)}.`,
+        }),
       onIntelOutOfReach: () =>
         chatLog.post({ text: "Get closer to collect its intel." }),
       onPitchEvent: (event) => {
@@ -197,4 +202,12 @@ export class Game {
 
     this.app.destroy(true);
   }
+}
+
+/** The name painted on a section's building, e.g. "SKILLS". */
+function buildingTitle(section: CvSectionId): string {
+  return (
+    BUILDINGS.find((building) => building.section === section)?.title ??
+    section.toUpperCase()
+  );
 }

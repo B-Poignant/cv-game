@@ -1,23 +1,21 @@
-import { buildingButton, expect, openGame, test } from "./fixtures";
+import {
+  buildingButton,
+  expect,
+  openGame,
+  test,
+  walkToBuilding,
+} from "./fixtures";
 
-// F-070, F-071. Recruiters spawn at (12, 12); SKILLS covers columns 5–7, rows 5–6.
+// F-070, F-071
 test.describe("Minigames", () => {
   test("opening SKILLS up close plays the skill breakout; Escape quits to the CV", async ({
     page,
   }) => {
     const console = await openGame(page);
-    await console.waitForLog("[MULTIPLAYER] Connected");
     const inventory = page.getByRole("complementary", { name: /^Intel/ });
     const panel = page.getByRole("dialog", { name: "Compétences" });
 
-    // Up and left to about (8, 7), within 2 tiles of SKILLS (diagonals run at ~2.1 tiles/s
-    // per axis, straight lines at 3).
-    await page.keyboard.down("ArrowUp");
-    await page.keyboard.down("ArrowLeft");
-    await page.waitForTimeout(1900);
-    await page.keyboard.up("ArrowLeft");
-    await page.waitForTimeout(400);
-    await page.keyboard.up("ArrowUp");
+    await walkToBuilding(page, console, "SKILLS");
     await (await buildingButton(page, "SKILLS")).press("Enter");
 
     // The minigame is drawn on the canvas: the CV panel waits until it ends.

@@ -52,7 +52,7 @@ test.describe("Intel cards", () => {
     expect(console.errors).toEqual([]);
   });
 
-  test("opening a building from afar shows the CV but no card", async ({
+  test("a building stays shut from afar: no minigame, no CV, no card", async ({
     page,
   }) => {
     const console = await openGame(page);
@@ -61,12 +61,10 @@ test.describe("Intel cards", () => {
 
     await (await buildingButton(page, "SKILLS")).press("Enter");
 
-    await expect(
-      page.getByRole("dialog", { name: "Compétences" }),
-    ).toBeVisible();
     await expect(page.getByRole("log")).toContainText(
-      "Get closer to collect its intel.",
+      "Get closer to enter SKILLS.",
     );
+    await expect(page.getByRole("dialog")).toBeHidden();
     await expect(inventory).toHaveAccessibleName("Intel 0/3");
   });
 });

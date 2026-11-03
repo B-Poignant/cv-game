@@ -149,6 +149,10 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-070: buildings could be opened from anywhere on the map: the pointer cursor showed from
+  afar and a click opened the CV panel without playing the minigame. A building now opens
+  only from within 2 tiles, where it plays its minigame; from further away the cursor stays
+  an arrow and a click only says "Get closer to enter SKILLS."
 - F-032: `npm run dev` no longer warns that `vite.config.ts` uses features unsupported by
   `configLoader: 'native'`. The dev `/cv/` route now loads the CV modules through Vite
   (`ssrLoadModule`) instead of importing them into the config.

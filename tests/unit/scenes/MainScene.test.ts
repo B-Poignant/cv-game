@@ -309,13 +309,18 @@ describe("MainScene", () => {
   // F-030
   describe("opening a building", () => {
     it.each(BUILDINGS)(
-      "reports the $section section when $title is tapped",
+      "reports the $section section when $title is tapped up close",
       (definition) => {
         const onBuildingSelected = vi.fn();
         const { ofType } = createScene(fakeRenderer(), { onBuildingSelected });
         const building = ofType(Building).find(
           (candidate) => candidate.title === definition.title,
         )!;
+        // Next to the building's top corner.
+        vi.spyOn(ofType(Player)[0], "getGridPosition").mockReturnValue({
+          column: definition.gridPosition.column - 1,
+          row: definition.gridPosition.row,
+        });
 
         building.emit("pointertap", undefined as never);
 
@@ -387,11 +392,11 @@ describe("MainScene", () => {
       });
     });
 
-    it("explains instead of asking when too far, and still opens the building", async () => {
-      const onIntelOutOfReach = vi.fn();
+    it("doesn't open a building from too far, and says to get closer", async () => {
+      const onBuildingOutOfReach = vi.fn();
       const onBuildingSelected = vi.fn();
       const { standAt, tap, skills } = await joinedScene({
-        onIntelOutOfReach,
+        onBuildingOutOfReach,
         onBuildingSelected,
       });
       standAt(PLAYER_SPAWN.column, PLAYER_SPAWN.row);
@@ -399,15 +404,27 @@ describe("MainScene", () => {
       tap(skills);
 
       expect(network.send).not.toHaveBeenCalled();
-      expect(onIntelOutOfReach).toHaveBeenCalledExactlyOnceWith("skills");
-      expect(onBuildingSelected).toHaveBeenCalledExactlyOnceWith("skills");
+      expect(onBuildingOutOfReach).toHaveBeenCalledExactlyOnceWith("skills");
+      expect(onBuildingSelected).not.toHaveBeenCalled();
+    });
+
+    it("shows a building as clickable only within reach", async () => {
+      const { scene, standAt, skills } = await joinedScene();
+
+      standAt(PLAYER_SPAWN.column, PLAYER_SPAWN.row);
+      scene.update(0);
+      expect(skills.cursor).toBe("default");
+
+      standAt(6, 7);
+      scene.update(0);
+      expect(skills.cursor).toBe("pointer");
     });
 
     it("doesn't ask again for a card already held", async () => {
       const onIntelOutOfReach = vi.fn();
       const { standAt, tap, skills } = await joinedScene({ onIntelOutOfReach });
       localIntel.onChange?.(["stack"]);
-      standAt(PLAYER_SPAWN.column, PLAYER_SPAWN.row);
+      standAt(6, 7);
 
       tap(skills);
 
@@ -467,7 +484,7 @@ describe("MainScene", () => {
         expect(network.send).not.toHaveBeenCalled();
       });
 
-      it("opens the panel as before when too far to earn the card", async () => {
+      it("neither plays nor opens the panel from too far", async () => {
         const {
           standAt,
           tap,
@@ -480,7 +497,7 @@ describe("MainScene", () => {
         tap(skills);
 
         expect(onMinigameRequested).not.toHaveBeenCalled();
-        expect(onBuildingSelected).toHaveBeenCalledExactlyOnceWith("skills");
+        expect(onBuildingSelected).not.toHaveBeenCalled();
       });
 
       it("opens the panel straight away once the card is held", async () => {

@@ -108,8 +108,9 @@ the map. Otherwise the tap falls back to "Opening a CV section" and "Collecting 
 
 ### Collecting intel (F-031)
 
-`Building` or `Chest` `pointertap` → `MainScene.collectIntel(source)` → (too far:
-`onIntelOutOfReach`) → `room.send("collect-intel", { source })` → `CvRoom` checks the source,
+`Chest` `pointertap`, a minigame win (`MainScene.minigameEnded`), or a building without a
+minigame opened up close (a building from afar stays shut: `onBuildingOutOfReach`) →
+`MainScene.collectIntel(source)` → (too far: `onIntelOutOfReach`) → `room.send("collect-intel", { source })` → `CvRoom` checks the source,
 the reach and duplicates → `PlayerState.intel.push(card)` → state patch → `LocalIntel` →
 `MainScene` `onIntelChange(cards)` → `Game` → `IntelInventory.update` → (new card) `ChatLog.post`
 (F-052). Ben's refusals and answers also go `PitchFlow` → `ChatLog.post`.
