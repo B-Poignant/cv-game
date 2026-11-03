@@ -159,6 +159,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 - F-022: the client sent a `move` every frame (240 a second on a 240 Hz screen) and the room
   had no message limit. Moves now go out at most 20 times a second, and the server drops a
   client that sends more than 60 messages in a second.
+- Dependencies: `npm audit fix` updates `body-parser` (2.4.0), `zod` (4.6.7) and `qs`
+  (6.17.1), which had high and moderate advisories. No high advisory is left in runtime
+  dependencies.
 - F-042: closing the pitch dialog after sending an offer left the map paused for good when no
   answer came (the offer was too late, or the connection dropped). Closing it now resumes the
   game, and the server answers a late offer with "Too slow, I left." instead of silence.
