@@ -13,6 +13,7 @@ import type { RecruiterIdentity } from "../../shared/recruiters";
 import { SPAM } from "../../shared/spam";
 import {
   CHEST_POSITION,
+  createWorldCollisions,
   MAP_SIZE,
   MOVE_SEND_INTERVAL_MS,
 } from "../../shared/world";
@@ -99,7 +100,12 @@ export class MainScene extends Container {
     this.world.sortableChildren = true;
     this.addChild(this.world);
 
-    this.map = new GameMap(MAP_SIZE.columns, MAP_SIZE.rows);
+    // The same collisions the server builds: one source for the world rule.
+    this.map = new GameMap(
+      MAP_SIZE.columns,
+      MAP_SIZE.rows,
+      createWorldCollisions(),
+    );
     this.world.addChild(this.map);
 
     this.createDistricts();
@@ -274,13 +280,6 @@ export class MainScene extends Container {
     const position = this.map.converter.toScreen(building.gridPosition);
 
     building.position.set(position.x, position.y);
-
-    this.map.blockArea(
-      building.gridPosition.column,
-      building.gridPosition.row,
-      building.gridWidth,
-      building.gridHeight,
-    );
 
     // pointertap: a full click or tap, also fired by the accessibility layer (Enter).
     building.on("pointertap", () => {

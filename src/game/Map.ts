@@ -18,14 +18,22 @@ export class GameMap extends Container {
   private readonly tiles: Graphics[] = [];
   private currentTheme: Theme = DEFAULT_THEME;
 
-  constructor(columns: number, rows: number) {
+  /**
+   * `collisions` is the world's (`createWorldCollisions()` from `shared/world.ts`), so the
+   * client blocks the same tiles as the server.
+   */
+  constructor(
+    columns: number,
+    rows: number,
+    collisions: CollisionMap = new CollisionMap(),
+  ) {
     super();
 
     this.columns = columns;
     this.rows = rows;
     this.converter = new IsometricConverter(this.tileWidth, this.tileHeight);
 
-    this.collisions = new CollisionMap();
+    this.collisions = collisions;
 
     this.createMap();
   }

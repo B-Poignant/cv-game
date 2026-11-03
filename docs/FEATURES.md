@@ -219,7 +219,8 @@ at any point, in ID order, and should land before the game is shared publicly.
   `GameMap.canWalkTo` refuses positions outside the map or on blocked tiles. Fractional
   positions are rounded to the nearest tile. Tiles are centred on whole numbers, so the map
   spans -0.5 to 23.5 on each axis: `isInsideGrid` (`shared/world.ts`) is the one bounds
-  check, used by the client (`GameMap.isInside`) and the server (`isInsideMap`).
+  check, used by the client (`GameMap.isInside`) and the server (`isInsideMap`). Both build
+  their blocked tiles with `createWorldCollisions()`: `MainScene` passes it to `GameMap`.
 - **Code:** `shared/CollisionMap.ts`, `shared/world.ts`, `src/game/Map.ts`
 - **Tests:** `tests/unit/shared/CollisionMap.test.ts`, `tests/unit/game/Map.test.ts`,
   `tests/unit/game/Player.test.ts`

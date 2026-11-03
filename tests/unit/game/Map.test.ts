@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { Graphics } from "pixi.js";
 
 import { DEFAULT_THEME, THEMES } from "../../../src/config/themes";
+import { CollisionMap } from "../../../shared/CollisionMap";
 import { GameMap } from "../../../src/game/Map";
 import { drawnColours } from "../../helpers/pixi";
 
@@ -52,6 +53,17 @@ describe("GameMap", () => {
       const map = new GameMap(20, 20);
 
       expect(map.canWalkTo({ column: -1, row: 5 })).toBe(false);
+    });
+
+    // The scene passes the world's collisions (createWorldCollisions), as the server uses.
+    it("walks around the collision map it is given", () => {
+      const collisions = new CollisionMap();
+      collisions.block(3, 4);
+
+      const map = new GameMap(20, 20, collisions);
+
+      expect(map.canWalkTo({ column: 3, row: 4 })).toBe(false);
+      expect(map.collisions).toBe(collisions);
     });
 
     it("refuses a tile covered by a blocked area", () => {
