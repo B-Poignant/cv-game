@@ -1,12 +1,18 @@
 import { CV } from "../../src/content/cv";
-import { buildingButton, expect, openGame, test } from "./fixtures";
+import {
+  buildingButton,
+  expect,
+  openGame,
+  test,
+  walkToBuilding,
+} from "./fixtures";
 
 /** The CV's jobs from the oldest to the newest, as the timeline's cards name them (F-072). */
 const JOBS_OLDEST_FIRST = [...CV.experiences]
   .sort((a, b) => a.startDate.localeCompare(b.startDate))
   .map((experience) => `${experience.company} — ${experience.role}`);
 
-// F-031, F-052, F-072. Recruiters spawn at (12, 12); EXPERIENCE covers columns 16–18, rows 5–6.
+// F-031, F-052, F-072
 test.describe("Intel cards", () => {
   test("winning a building's minigame up close earns its card", async ({
     page,
@@ -16,14 +22,7 @@ test.describe("Intel cards", () => {
     const inventory = page.getByRole("complementary", { name: /^Intel/ });
     await expect(inventory).toHaveAccessibleName("Intel 0/3");
 
-    // Up and right to about (15, 7), within 2 tiles of EXPERIENCE (diagonals run at
-    // ~2.1 tiles/s per axis, straight lines at 3).
-    await page.keyboard.down("ArrowUp");
-    await page.keyboard.down("ArrowRight");
-    await page.waitForTimeout(1400);
-    await page.keyboard.up("ArrowRight");
-    await page.waitForTimeout(700);
-    await page.keyboard.up("ArrowUp");
+    await walkToBuilding(page, console, "EXPERIENCE");
     await (await buildingButton(page, "EXPERIENCE")).press("Enter");
 
     // The career timeline: its cards are buttons in the accessibility layer. Pick the ones

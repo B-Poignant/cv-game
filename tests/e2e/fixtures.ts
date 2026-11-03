@@ -78,48 +78,54 @@ export async function buildingButton(page: Page, title: string) {
 type ArrowKey = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
 
 /**
- * From the spawn (12, 12), a diagonal held for `diagonalMs`, then the first key alone for
- * `straightMs` (diagonals run at ~2.1 tiles/s per axis, straight lines at 3). Each route ends
- * within 2 tiles of its building, close enough to open it.
+ * The diagonal from the spawn (12, 12) towards each building. Held long enough, it ends
+ * against the building's nearest corner, so it always passes within reach.
  */
-const ROUTES: Record<
-  string,
-  { keys: [ArrowKey, ArrowKey]; diagonalMs: number; straightMs: number }
-> = {
-  // To about (8, 7); SKILLS covers columns 5–7, rows 5–6.
-  SKILLS: { keys: ["ArrowUp", "ArrowLeft"], diagonalMs: 1900, straightMs: 400 },
-  // To about (15, 7); EXPERIENCE covers columns 16–18, rows 5–6.
-  EXPERIENCE: {
-    keys: ["ArrowUp", "ArrowRight"],
-    diagonalMs: 1400,
-    straightMs: 700,
-  },
-  // To about (8, 17); EDUCATION covers columns 5–7, rows 17–18.
-  EDUCATION: {
-    keys: ["ArrowDown", "ArrowLeft"],
-    diagonalMs: 1900,
-    straightMs: 400,
-  },
+const DIAGONALS: Record<string, [ArrowKey, ArrowKey]> = {
+  // SKILLS covers columns 5–7, rows 5–6.
+  SKILLS: ["ArrowUp", "ArrowLeft"],
+  // EXPERIENCE covers columns 16–18, rows 5–6.
+  EXPERIENCE: ["ArrowUp", "ArrowRight"],
+  // EDUCATION covers columns 5–7, rows 17–18.
+  EDUCATION: ["ArrowDown", "ArrowLeft"],
 };
 
 /**
- * Walks from the spawn to within reach of a building (they only open from up close). Waits
- * for the server first, so it doesn't send the visitor back to the spawn.
+ * Walks from the spawn until a building is within reach (they only open from up close, F-070).
+ * It doesn't walk for a fixed time, which depends on the frame rate: with the mouse over the
+ * building, it stops as soon as the canvas shows the pointer cursor, which the game only does
+ * within reach. Waits for the server first, so it doesn't send the visitor back to the spawn.
  */
 export async function walkToBuilding(
   page: Page,
   console: ConsoleRecorder,
   title: string,
 ): Promise<void> {
-  const { keys, diagonalMs, straightMs } = ROUTES[title];
+  const keys = DIAGONALS[title];
   await console.waitForLog("[MULTIPLAYER] Connected");
+  const box = await (await buildingButton(page, title)).boundingBox();
+  expect(box, `${title}'s button`).not.toBeNull();
+  const x = box!.x + box!.width / 2;
+  const y = box!.y + box!.height / 2;
+  let wiggle = 0;
+  // Pixi only re-checks the cursor when the pointer moves, so nudge it before each look.
+  // Moving the mouse also turns Pixi's keyboard layer off, so the canvas gets the cursor.
+  const cursor = async () => {
+    wiggle = 1 - wiggle;
+    await page.mouse.move(x + wiggle, y);
+    return page.locator("canvas").evaluate((canvas) => canvas.style.cursor);
+  };
 
   await page.keyboard.down(keys[0]);
   await page.keyboard.down(keys[1]);
-  await page.waitForTimeout(diagonalMs);
-  await page.keyboard.up(keys[1]);
-  await page.waitForTimeout(straightMs);
-  await page.keyboard.up(keys[0]);
+  try {
+    await expect
+      .poll(cursor, { message: `${title} within reach`, timeout: 10_000 })
+      .toBe("pointer");
+  } finally {
+    await page.keyboard.up(keys[1]);
+    await page.keyboard.up(keys[0]);
+  }
 }
 
 /**

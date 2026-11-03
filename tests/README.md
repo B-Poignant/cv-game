@@ -88,6 +88,10 @@ npx vitest run tests/unit/game/Player.test.ts -t "diagonal"   # one file / one t
   `[REMOTE]` and `[DEV]` console logs are how we observe it. **Renaming those log messages breaks
   E2E tests.**
 - Every E2E test asserts `console.errors` is empty.
+- Walk to a building with `walkToBuilding(page, console, title)`, and open its CV panel with
+  `openSection`. Never walk by holding a key for a fixed time: the distance depends on the
+  frame rate. `walkToBuilding` holds a diagonal until the canvas shows the pointer cursor over
+  the building, which the game only does within reach.
 - The e2e server runs with `DEV_WANDERS=false` and `SPAM_FLIES=false` (`playwright.config.ts`):
   the dev stands still and no spam email flies, so screenshot comparisons only change when a
   visitor moves.
