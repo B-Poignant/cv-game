@@ -43,7 +43,7 @@ const SPEED_TOLERANCE = 1.25;
 export const SIMULATION_INTERVAL_MS = 50;
 
 /** Time to send an offer once the pitch dialog opens (F-042). */
-const PITCH_WINDOW_MS = 60_000;
+export const PITCH_WINDOW_MS = 60_000;
 
 /** Minimum time between two "no" from the dev to the same recruiter. */
 const PITCH_NOTICE_MS = 3000;
@@ -288,8 +288,16 @@ export class CvRoom extends Room {
     }
 
     const now = performance.now();
+    const outcome = this.pitches.submit(client.sessionId, now);
 
-    if (!this.pitches.submit(client.sessionId, now)) {
+    if (outcome === "late") {
+      // The recruiter's dialog is waiting for an answer: don't leave it hanging.
+      client.send("pitch", {
+        type: "refused",
+        line: DEV_LINES.tooSlow,
+      } satisfies PitchEvent);
+    }
+    if (outcome !== "accepted") {
       return;
     }
 

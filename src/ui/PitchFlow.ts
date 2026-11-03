@@ -32,6 +32,10 @@ export class PitchFlow {
     this.dialog = dialog;
     this.say = say;
     this.contact = contact;
+    this.dialog.onCloseWhileWaiting = () => {
+      this.host.cancelPitch();
+      this.host.setPaused(false);
+    };
   }
 
   public handle(event: PitchEvent): void {
@@ -49,6 +53,10 @@ export class PitchFlow {
         break;
       case "refused":
         this.say({ speaker: "Ben", text: event.line });
+        // A late offer is refused instead of scored: nothing else will close the dialog.
+        if (this.dialog.isWaiting) {
+          this.dialog.close();
+        }
         break;
       case "result":
         for (const line of event.lines) {

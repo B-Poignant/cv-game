@@ -511,12 +511,15 @@ at any point, in ID order, and should land before the game is shared publicly.
     every 3 s), or nothing (a dialog is already open).
   - Messages: the server sends `pitch` events (`open`, `refused` with Ben's line, `result`
     with `hired` and his lines). The client sends `pitch` (the offer) and `pitch-cancel`.
-    An offer is only scored if it's valid and the sender's dialog is open; anything else is
-    ignored.
+    An offer is only scored if it's valid and the sender's dialog is open. One sent after its
+    dialog timed out gets `refused` with "Too slow, I left." (`PitchTracker.submit` returns
+    `late`), so the recruiter isn't left waiting; anything else is ignored.
   - Client: `PitchChannel` (`src/network/`) checks and passes events to `MainScene` →
     `PitchFlow` (`src/ui/`, wired by `Game`). On `open`, `PitchFlow` pauses the scene and
     opens `PitchDialog`; the offer goes back through `MainScene.pitch`, and closing without
-    pitching sends `pitch-cancel`. The answer shows in the same dialog ("You got me!" or
+    pitching sends `pitch-cancel`. Closing it while it waits for the answer (✕, Escape, or a
+    "Too slow" refusal) also sends `pitch-cancel` and resumes the scene, since that answer may
+    never come (`PitchDialog.onCloseWhileWaiting`). The answer shows in the same dialog ("You got me!" or
     "Not this time"). Refusals and every line of Ben's answer are posted to the chat log (F-052). The event type (`PitchEvent`)
     lives in `shared/pitch.ts`, so the server's messages are type-checked against it.
 - **Code:** `shared/pitch.ts`, `shared/preferences.ts`, `server/rooms/PitchTracker.ts`,
@@ -527,7 +530,7 @@ at any point, in ID order, and should land before the game is shared publicly.
   `tests/unit/network/PitchChannel.test.ts` (malformed events), `tests/unit/ui/PitchDialog.test.ts`,
   `tests/unit/ui/PitchFlow.test.ts`, `tests/unit/scenes/MainScene.test.ts` ("pitching"); integration
   `tests/integration/server/CvRoom.test.ts` ("catching the dev and pitching": no intel, not
-  touching, uncaught, invalid, cancelled, cooldown), `tests/integration/network/PitchChannel.test.ts`;
+  touching, uncaught, late, invalid, cancelled, cooldown), `tests/integration/network/PitchChannel.test.ts`;
   e2e `tests/e2e/pitch.spec.ts` (Ben turns down a recruiter without intel)
 - **Limits:**
   - A good pitch shows Ben's answer and his contact details (F-043) to that recruiter only;
@@ -535,7 +538,8 @@ at any point, in ID order, and should land before the game is shared publicly.
   - Ben keeps running while the dialog is open; the catch only opens it. After a bad pitch
     he doesn't teleport away, he just keeps fleeing.
   - If the result never arrives (server gone), the dialog shows "Ben is thinking…" until
-    closed, and the scene stays paused.
+    the visitor closes it, which resumes the scene. An answer that arrives after that still
+    opens the dialog to show it.
   - The full journey (3 cards, catch, pitch) has no e2e test: the chest can only be clicked
     on the canvas, so it's covered by the integration tests instead.
 

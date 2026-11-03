@@ -149,6 +149,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-042: closing the pitch dialog after sending an offer left the map paused for good when no
+  answer came (the offer was too late, or the connection dropped). Closing it now resumes the
+  game, and the server answers a late offer with "Too slow, I left." instead of silence.
 - F-002: after a resize or a phone rotation, the map (and a running minigame's board) was
   fitted to the old window size and could overflow off-screen. It now refits once Pixi has
   resized the renderer, on the renderer's own `resize` event.

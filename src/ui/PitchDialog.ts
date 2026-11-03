@@ -42,6 +42,13 @@ export class PitchDialog {
   private readonly extra: HTMLDivElement;
 
   private settle?: () => void;
+  private stage: Stage = "closed";
+
+  /**
+   * Called when the visitor closes the dialog while it waits for the dev's answer (or when
+   * `close` does): the answer may never come, so whoever paused the game resumes it.
+   */
+  public onCloseWhileWaiting?: () => void;
 
   constructor(parent: HTMLElement = document.body) {
     this.element = document.createElement("div");
@@ -124,6 +131,16 @@ export class PitchDialog {
     return !this.element.hidden;
   }
 
+  /** An offer was sent and the dev's answer hasn't arrived yet. */
+  public get isWaiting(): boolean {
+    return this.stage === "waiting";
+  }
+
+  /** Closes the dialog as if the visitor did, whatever it shows. */
+  public close(): void {
+    this.settle?.();
+  }
+
   /**
    * Opens the dialog and resolves with the offer once every part is picked, or `undefined`
    * if the visitor closes it. After an offer, the dialog stays open until `showResult`.
@@ -136,7 +153,13 @@ export class PitchDialog {
     return new Promise((resolve) => {
       const finish = (offer: PitchOffer | undefined): void => {
         this.form.removeEventListener("submit", handleSubmit);
-        this.settle = offer ? () => this.setStage("closed") : undefined;
+        this.settle = offer
+          ? () => {
+              this.settle = undefined;
+              this.setStage("closed");
+              this.onCloseWhileWaiting?.();
+            }
+          : undefined;
 
         if (offer) {
           this.setStage("waiting");
@@ -202,6 +225,7 @@ export class PitchDialog {
   }
 
   private setStage(stage: Stage): void {
+    this.stage = stage;
     this.element.hidden = stage === "closed";
     this.offer.hidden = stage === "result";
     this.result.hidden = stage !== "result";

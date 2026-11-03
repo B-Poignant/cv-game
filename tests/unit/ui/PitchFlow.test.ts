@@ -74,6 +74,48 @@ describe("PitchFlow", () => {
     expect(host.pitch).not.toHaveBeenCalled();
   });
 
+  /** Opens the dialog and sends a complete offer. */
+  async function sendOffer(
+    flow: PitchFlow,
+    pick: (n: string, v: string) => void,
+    button: (s: string) => HTMLButtonElement,
+    host: { pitch: ReturnType<typeof vi.fn> },
+  ) {
+    flow.handle({ type: "open" });
+    pick("stack", "php");
+    pick("workMode", "remote");
+    pick("role", "tech-lead");
+    pick("line", "read-cv");
+    button("button[type=submit]").click();
+    await vi.waitFor(() => expect(host.pitch).toHaveBeenCalledOnce());
+  }
+
+  // The answer may never come (the connection dropped): closing must not leave the map paused.
+  it("resumes the game when the dialog is closed while waiting for the answer", async () => {
+    const { host, dialog, flow, pick, button } = createFlow();
+    await sendOffer(flow, pick, button, host);
+
+    button("[aria-label=Close]").click();
+
+    expect(dialog.isOpen).toBe(false);
+    expect(host.cancelPitch).toHaveBeenCalledOnce();
+    expect(host.setPaused).toHaveBeenLastCalledWith(false);
+  });
+
+  it("closes the waiting dialog and resumes when Ben refuses a late offer", async () => {
+    const { host, dialog, say, flow, pick, button } = createFlow();
+    await sendOffer(flow, pick, button, host);
+
+    flow.handle({ type: "refused", line: "Too slow, I left." });
+
+    expect(say).toHaveBeenCalledWith({
+      speaker: "Ben",
+      text: "Too slow, I left.",
+    });
+    expect(dialog.isOpen).toBe(false);
+    expect(host.setPaused).toHaveBeenLastCalledWith(false);
+  });
+
   it("posts a refusal as Ben's line", () => {
     const { say, flow, dialog } = createFlow();
 

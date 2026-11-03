@@ -41,16 +41,17 @@ describe("PitchTracker", () => {
     const tracker = createTracker();
     tracker.touch("alice", true, 0);
 
-    expect(tracker.submit("alice", 59_999)).toBe(true);
-    expect(tracker.submit("alice", 59_999)).toBe(false);
+    expect(tracker.submit("alice", 59_999)).toBe("accepted");
+    expect(tracker.submit("alice", 59_999)).toBe("none");
   });
 
-  it("refuses an offer without a catch, or after the time is up", () => {
+  it("refuses an offer without a catch, and calls one after the time is up late", () => {
     const tracker = createTracker();
-    expect(tracker.submit("alice", 0)).toBe(false);
+    expect(tracker.submit("alice", 0)).toBe("none");
 
     tracker.touch("alice", true, 0);
-    expect(tracker.submit("alice", 60_000)).toBe(false);
+    expect(tracker.submit("alice", 60_000)).toBe("late");
+    expect(tracker.submit("alice", 60_001)).toBe("none");
   });
 
   it("opens again once a timed-out dialog has expired", () => {
@@ -78,7 +79,7 @@ describe("PitchTracker", () => {
     tracker.touch("alice", true, 0);
     tracker.cancel("alice", 1000);
 
-    expect(tracker.submit("alice", 1000)).toBe(false);
+    expect(tracker.submit("alice", 1000)).toBe("none");
     expect(tracker.touch("alice", true, 3999)).toEqual({ kind: "none" });
     expect(tracker.touch("alice", true, 4000)).toEqual({ kind: "open" });
   });

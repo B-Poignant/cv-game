@@ -120,6 +120,8 @@ export const DEV_LINES = {
   hired: "…OK. You actually read it. You got me.",
   noIntel: "Do you even know what I do?",
   cooldown: (seconds: number) => `Not again! Give me ${seconds} s.`,
+  /** An offer sent after the pitch dialog timed out (F-042). */
+  tooSlow: "Too slow, I left.",
 };
 
 export interface PitchOffer {

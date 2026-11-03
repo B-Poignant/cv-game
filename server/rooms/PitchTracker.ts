@@ -7,6 +7,9 @@ export interface PitchTimings {
   noticeMs: number;
 }
 
+/** What happens to an offer: scored, too late (the dialog timed out), or ignored. */
+export type SubmitOutcome = "accepted" | "late" | "none";
+
 /** What touching the dev leads to for one recruiter. */
 export type TouchOutcome =
   | { kind: "open" }
@@ -62,14 +65,21 @@ export class PitchTracker {
     return { kind: "open" };
   }
 
-  /** Uses up the open dialog. False if there's none, or it timed out. */
-  public submit(id: string, now: number): boolean {
+  /**
+   * Uses up the open dialog. "late" if it timed out (the recruiter is still waiting for an
+   * answer), "none" if there was no dialog at all.
+   */
+  public submit(id: string, now: number): SubmitOutcome {
     const pitch = this.get(id);
-    const open = this.isOpen(pitch, now);
+    const outcome: SubmitOutcome = this.isOpen(pitch, now)
+      ? "accepted"
+      : pitch.openUntil === undefined
+        ? "none"
+        : "late";
 
     pitch.openUntil = undefined;
 
-    return open;
+    return outcome;
   }
 
   /** After a bad pitch. */

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CvRoom } from "../../../server/rooms/CvRoom";
+import { PITCH_WINDOW_MS, type CvRoom } from "../../../server/rooms/CvRoom";
+import { DEV_LINES } from "../../../shared/pitch";
 import { DEFAULT_RECRUITERS } from "../../../shared/recruiters";
 import {
   createWorldCollisions,
@@ -690,6 +691,22 @@ describe("CvRoom", () => {
       await settle();
 
       expect(events).toEqual([]);
+    });
+
+    it("answers an offer sent after the time is up, so the recruiter isn't left waiting", async () => {
+      const { client, events, touch } = await nextToBen();
+      touch();
+      await vi.waitFor(() => expect(events).toHaveLength(1));
+      const now = performance.now();
+      const later = vi
+        .spyOn(performance, "now")
+        .mockReturnValue(now + PITCH_WINDOW_MS + 1);
+
+      client.send("pitch", GOOD_OFFER);
+      await vi.waitFor(() => expect(events).toHaveLength(2));
+      later.mockRestore();
+
+      expect(events[1]).toEqual({ type: "refused", line: DEV_LINES.tooSlow });
     });
 
     it("ignores an invalid offer, and still takes a valid one", async () => {
