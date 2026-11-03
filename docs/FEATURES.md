@@ -128,7 +128,8 @@ at any point, in ID order, and should land before the game is shared publicly.
 - **What:** the CV buildings (EXPERIENCE, SKILLS and EDUCATION) placed on the map.
 - **How it works:** `BUILDINGS` in `shared/buildings.ts` lists each building's title,
   grid position, footprint and colour. `MainScene.createBuildings` turns each entry into a
-  `Building` through `BuildingFactory`, positions it, blocks its footprint in the collision
+  `Building` through `BuildingFactory` (given the map's `IsometricConverter`, which draws its
+  footprint and places its title), positions it, blocks its footprint in the collision
   map, and makes it clickable.
 - **Code:** `shared/buildings.ts`, `src/game/factories/BuildingFactory.ts`,
   `src/game/entities/Building.ts`, `src/scenes/MainScene.ts`

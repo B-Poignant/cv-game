@@ -249,7 +249,7 @@ export class MainScene extends Container {
   }
 
   private createBuildings(): void {
-    const factory = new BuildingFactory();
+    const factory = new BuildingFactory(this.map.converter);
 
     for (const definition of BUILDINGS) {
       this.addBuilding(factory.create(definition), definition.section);

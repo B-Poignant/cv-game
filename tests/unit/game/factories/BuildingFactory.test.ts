@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 
 import { BuildingFactory } from "../../../../src/game/factories/BuildingFactory";
+import { IsometricConverter } from "../../../../src/game/IsometricConverter";
 import { aBuildingDefinition } from "../../../helpers/builders";
 
 describe("BuildingFactory", () => {
@@ -14,7 +15,9 @@ describe("BuildingFactory", () => {
       color: 0xff0000,
     });
 
-    const building = new BuildingFactory().create(definition);
+    const building = new BuildingFactory(new IsometricConverter(64, 32)).create(
+      definition,
+    );
 
     expect(building).toMatchObject({
       title: "PROJECTS",

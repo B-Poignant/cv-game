@@ -103,6 +103,8 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Changed
 
+- F-003: `Building` draws its footprint and title through the map's `IsometricConverter`
+  instead of its own copy of the iso maths and tile size.
 - F-071: Skills Park's minigame is now a skill breakout instead of the buzzword catcher.
   Only the bricks holding the dev's real stack carry a word, the others are empty; break
   every skill brick with the paddle (←/→, Q/D, A/D or the mouse) before losing 3 balls to

@@ -2,6 +2,7 @@ import { Container, Graphics, Text } from "pixi.js";
 
 import { DEFAULT_THEME, type Theme } from "../../config/themes";
 import type { GridPosition } from "../../../shared/grid";
+import type { IsometricConverter } from "../IsometricConverter";
 
 export class Building extends Container {
   readonly title: string;
@@ -10,9 +11,12 @@ export class Building extends Container {
   readonly gridHeight: number;
   readonly color: number;
 
+  private readonly converter: IsometricConverter;
   private titleText?: Text;
 
+  /** `converter` is the map's, so the footprint lines up with its tiles. */
   constructor(
+    converter: IsometricConverter,
     title: string,
     gridPosition: GridPosition,
     width: number = 2,
@@ -21,6 +25,7 @@ export class Building extends Container {
   ) {
     super();
 
+    this.converter = converter;
     this.title = title;
     this.gridPosition = gridPosition;
     this.gridWidth = width;
@@ -38,8 +43,7 @@ export class Building extends Container {
   }
 
   private createMarker(): void {
-    const tileWidth = 64;
-    const tileHeight = 32;
+    const { tileWidth, tileHeight } = this.converter;
 
     for (let row = 0; row < this.gridHeight; row += 1) {
       for (let column = 0; column < this.gridWidth; column += 1) {
@@ -60,11 +64,9 @@ export class Building extends Container {
             width: 2,
           });
 
-        const screenX = (column - row) * (tileWidth / 2);
+        const screen = this.converter.toScreen({ column, row });
 
-        const screenY = (column + row) * (tileHeight / 2);
-
-        tile.position.set(screenX, screenY);
+        tile.position.set(screen.x, screen.y);
 
         this.addChild(tile);
       }
@@ -83,16 +85,13 @@ export class Building extends Container {
 
     text.anchor.set(0.5);
 
-    // On place le nom au-dessus du centre de la zone.
-    const center = {
+    // The title sits above the centre of the footprint.
+    const center = this.converter.toScreen({
       column: (this.gridWidth - 1) / 2,
       row: (this.gridHeight - 1) / 2,
-    };
+    });
 
-    text.position.set(
-      (center.column - center.row) * (tileWidth / 2),
-      (center.column + center.row) * (tileHeight / 2) - 20,
-    );
+    text.position.set(center.x, center.y - 20);
 
     this.addChild(text);
 
