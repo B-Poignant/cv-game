@@ -143,6 +143,9 @@ Conventions: `tests/README.md`. To write tests, use the `write-tests` skill
   with `isInsideGrid` / `isInsideMap` (`shared/world.ts`), never with `0 <= x < size`.
 - **CSS `display` beats the `hidden` attribute.** Any class that sets `display` on an element
   toggled with `hidden` needs a `[hidden] { display: none; }` rule (see `.cv-backdrop`).
+- **Server message handlers take `message: unknown`** and check it before use (see
+  `isMoveMessage` in `CvRoom`). Typing it as the expected shape lets `null` through, and a
+  throw used to end the Node process; `onUncaughtException` now only logs it.
 - **Never put CV or player text in `innerHTML`.** Build DOM with `textContent` (see `cvSections.ts`).
 - `MultiplayerClient` connects to `serverEndpoint()`: `localhost:2567` in dev, the page's origin
   in production, or `VITE_SERVER_URL`. The game should still run if the

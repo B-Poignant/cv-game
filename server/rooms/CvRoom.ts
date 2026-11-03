@@ -1,4 +1,4 @@
-import { type Client, Room } from "colyseus";
+import { type Client, Room, type RoomException } from "colyseus";
 
 import {
   createWorldCollisions,
@@ -103,7 +103,7 @@ export class CvRoom extends Room {
     dev.row = DEV_SPAWN.row;
     this.state.dev = dev;
 
-    this.onMessage("move", (client: Client, message: MoveMessage) => {
+    this.onMessage("move", (client: Client, message: unknown) => {
       this.handleMove(client, message);
     });
 
@@ -132,6 +132,15 @@ export class CvRoom extends Room {
         }
       }, SIMULATION_INTERVAL_MS);
     }
+  }
+
+  /**
+   * A handler that throws would otherwise end the Node process, and every room with it.
+   * Defining this makes Colyseus catch and report it instead (message handlers, timers,
+   * the simulation step and the lifecycle hooks).
+   */
+  public onUncaughtException(error: RoomException, methodName: string): void {
+    console.error(`[CvRoom] ${methodName} failed:`, error);
   }
 
   /** `options` comes from the client: an identity it typed (F-012), never trusted as is. */
@@ -293,7 +302,8 @@ export class CvRoom extends Room {
     client.send("pitch", { type: "result", ...result } satisfies PitchEvent);
   }
 
-  private handleMove(client: Client, message: MoveMessage): void {
+  /** `message` comes from the client: anything can arrive, so it is checked before use. */
+  private handleMove(client: Client, message: unknown): void {
     const player = this.state.players.get(client.sessionId);
     const budget = this.moveBudgets.get(client.sessionId);
 
@@ -301,7 +311,7 @@ export class CvRoom extends Room {
       return;
     }
 
-    if (!this.isValidPosition(message)) {
+    if (!isMoveMessage(message) || !this.isValidPosition(message)) {
       return;
     }
 
@@ -352,6 +362,17 @@ export class CvRoom extends Room {
       isWalkable(position, this.collisions)
     );
   }
+}
+
+function isMoveMessage(message: unknown): message is MoveMessage {
+  return (
+    typeof message === "object" &&
+    message !== null &&
+    "column" in message &&
+    "row" in message &&
+    typeof message.column === "number" &&
+    typeof message.row === "number"
+  );
 }
 
 function distanceBetween(from: MoveMessage, to: MoveMessage): number {

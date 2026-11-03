@@ -287,15 +287,20 @@ at any point, in ID order, and should land before the game is shared publicly.
 ✅ Done
 
 - **What:** the server has the final say, so a modified client can't teleport or leave the map.
-- **How it works:** `CvRoom.handleMove` ignores a `move` message unless both coordinates
-  are finite numbers on a walkable tile (inside the 24×24 map and not inside a building, rounded
+- **How it works:** `CvRoom.handleMove` takes the message as `unknown` and ignores it
+  unless it is an object whose two coordinates are finite numbers on a walkable tile (inside the 24×24 map and not inside a building, rounded
   to the nearest tile) and the client still has enough movement budget. Each client has a
   `MoveBudget` (a token bucket): it holds at most 1 tile, so one move can't jump further, and
   refills at `PLAYER_SPEED` × 1.25 tiles/s, so sending more messages can't make a player move
   faster. The 25% margin absorbs uneven frame and network timing.
+  - Every message handler checks its payload the same way (`collect-intel`, `pitch`), and
+    `CvRoom.onUncaughtException` logs any error a handler, timer or the simulation step
+    still throws, so a bug can't end the process and drop every visitor.
 - **Code:** `server/rooms/CvRoom.ts`, `server/rooms/MoveBudget.ts`
 - **Tests:** `tests/integration/server/CvRoom.test.ts` (valid moves, jumps, bursts of moves,
-  bounds, buildings, malformed payloads), `tests/unit/server/rooms/MoveBudget.test.ts`,
+  bounds, buildings, malformed payloads; "malformed messages": null, a string, an array or a
+  number on `move`, `collect-intel` and `pitch`, and a throwing handler is logged),
+  `tests/unit/server/rooms/MoveBudget.test.ts`,
   `tests/unit/shared/world.test.ts`
 - **Shared rules:** the bounds and the building footprints come from `shared/world.ts`
   (`isWalkable`), the same rule the client uses.

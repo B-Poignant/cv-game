@@ -149,6 +149,69 @@ describe("CvRoom", () => {
       expect(player()).toMatchObject(SPAWN);
     });
 
+    // Anyone can send anything from the browser console: a bad message is ignored, never fatal.
+    describe("malformed messages", () => {
+      const MALFORMED = [
+        { message: null, label: "null" },
+        { message: "13,12", label: "a string" },
+        { message: [13, 12], label: "an array" },
+        { message: 13, label: "a number" },
+      ];
+
+      it.each(MALFORMED)(
+        "ignores a move made of $label",
+        async ({ message }) => {
+          const { room, client, player } = await joinRoom();
+
+          client.send("move", message);
+          await room.waitForNextMessage();
+
+          expect(player()).toMatchObject(SPAWN);
+        },
+      );
+
+      it.each(
+        ["move", "collect-intel", "pitch"].flatMap((type) =>
+          MALFORMED.map(({ message, label }) => ({ type, message, label })),
+        ),
+      )(
+        "keeps running after a $type message made of $label",
+        async ({ type, message }) => {
+          const { room, client, player } = await joinRoom();
+
+          client.send(type, message);
+          client.send("move", { column: SPAWN.column + 1, row: SPAWN.row });
+          await vi.waitFor(() =>
+            expect(player()).toMatchObject({
+              column: SPAWN.column + 1,
+              row: SPAWN.row,
+            }),
+          );
+          expect(room.state.players.size).toBe(1);
+        },
+      );
+
+      it("logs a handler that throws instead of stopping the server", async () => {
+        const { room, client, player } = await joinRoom();
+        const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+        room.onMessage("boom", () => {
+          throw new Error("handler bug");
+        });
+
+        client.send("boom");
+        client.send("move", { column: SPAWN.column + 1, row: SPAWN.row });
+        await vi.waitFor(() =>
+          expect(player()).toMatchObject({ column: SPAWN.column + 1 }),
+        );
+
+        expect(logged).toHaveBeenCalledWith(
+          expect.stringContaining("[CvRoom]"),
+          expect.anything(),
+        );
+        logged.mockRestore();
+      });
+    });
+
     // Each move is short enough on its own; together they're far faster than walking.
     it("rejects a burst of moves faster than the player's speed", async () => {
       const { client, player } = await joinRoom();

@@ -149,6 +149,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-022: one malformed `move` message (`null`, a string, an array…) crashed the server and
+  dropped every visitor. The server now checks the payload and ignores it, and `CvRoom` logs
+  any error a handler still throws (`onUncaughtException`) instead of letting Node exit.
 - F-070: buildings could be opened from anywhere on the map: the pointer cursor showed from
   afar and a click opened the CV panel without playing the minigame. A building now opens
   only from within 2 tiles, where it plays its minigame; from further away the cursor stays
