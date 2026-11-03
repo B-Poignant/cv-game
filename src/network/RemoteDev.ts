@@ -12,6 +12,9 @@ export class RemoteDev {
   private readonly world: Container;
   private readonly converter: IsometricConverter;
   private readonly callbacks;
+  private readonly stopListening: () => void;
+  /** Unsubscribes from the shown dev's changes. */
+  private stopFollowing?: () => void;
 
   private dev?: Dev;
   private position?: GridPosition;
@@ -26,7 +29,7 @@ export class RemoteDev {
     this.converter = converter;
     this.callbacks = Callbacks.get(room);
 
-    this.callbacks.listen("dev", (devState) => {
+    this.stopListening = this.callbacks.listen("dev", (devState) => {
       this.show(devState);
     });
   }
@@ -71,7 +74,7 @@ export class RemoteDev {
 
     console.log("[DEV] Shown:", devState.name);
 
-    this.callbacks.onChange(devState, () => {
+    this.stopFollowing = this.callbacks.onChange(devState, () => {
       this.moveTo(devState);
     });
   }
@@ -82,6 +85,9 @@ export class RemoteDev {
   }
 
   private removeDev(): void {
+    this.stopFollowing?.();
+    this.stopFollowing = undefined;
+
     if (!this.dev) {
       return;
     }
@@ -91,7 +97,9 @@ export class RemoteDev {
     this.dev = undefined;
   }
 
+  /** Removes him and stops listening to the room, which may outlive this object. */
   public destroy(): void {
+    this.stopListening();
     this.removeDev();
   }
 }

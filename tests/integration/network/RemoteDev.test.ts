@@ -76,6 +76,18 @@ describe("RemoteDev", () => {
     expect(devs()).toHaveLength(0);
   });
 
+  // A room can outlive it (reconnection): it must stop following the server.
+  it("stops following Ben once destroyed", async () => {
+    const { remoteDev } = await joinAsMe();
+    await vi.waitFor(() => expect(remoteDev.gridPosition).toBeDefined());
+
+    remoteDev.destroy();
+    const position = remoteDev.gridPosition;
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    expect(remoteDev.gridPosition).toEqual(position);
+  });
+
   // F-062
   it("knows where Ben is, and shows what he says above him", async () => {
     const { me, remoteDev, devs } = await joinAsMe();

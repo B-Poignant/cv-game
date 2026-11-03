@@ -13,6 +13,7 @@ export class RemotePlayersManager {
   private readonly players = new Map<string, RemotePlayer>();
 
   private readonly callbacks;
+  private readonly unsubscribers: (() => void)[] = [];
   private readonly world: Container;
   private readonly converter: IsometricConverter;
   private readonly room: Room<CvRoomState>;
@@ -32,38 +33,28 @@ export class RemotePlayersManager {
   }
 
   private listenToPlayers(): void {
-    this.callbacks.onAdd(
-      "players",
-      (playerState: PlayerState, sessionId: string) => {
-        console.log("[REMOTE] onAdd", {
-          sessionId,
-          localSessionId: this.room.sessionId,
-          name: playerState.name,
-          column: playerState.column,
-          row: playerState.row,
-        });
+    this.unsubscribers.push(
+      this.callbacks.onAdd(
+        "players",
+        (playerState: PlayerState, sessionId: string) => {
+          if (sessionId === this.room.sessionId) {
+            return;
+          }
 
-        if (sessionId === this.room.sessionId) {
-          console.log("[REMOTE] local player ignored");
-
-          return;
-        }
-
-        this.addPlayer(sessionId, playerState);
-
-        this.callbacks.onChange(playerState, () => {
-          this.updatePlayer(sessionId, playerState);
-        });
-      },
-    );
-
-    this.callbacks.onRemove(
-      "players",
-      (_playerState: PlayerState, sessionId: string) => {
-        console.log("[REMOTE] onRemove", sessionId);
-
-        this.removePlayer(sessionId);
-      },
+          this.addPlayer(sessionId, playerState);
+          this.unsubscribers.push(
+            this.callbacks.onChange(playerState, () => {
+              this.updatePlayer(sessionId, playerState);
+            }),
+          );
+        },
+      ),
+      this.callbacks.onRemove(
+        "players",
+        (_playerState: PlayerState, sessionId: string) => {
+          this.removePlayer(sessionId);
+        },
+      ),
     );
   }
 
@@ -115,8 +106,6 @@ export class RemotePlayersManager {
     player.destroy();
 
     this.players.delete(sessionId);
-
-    console.log("[REMOTE] Remote player removed:", sessionId);
   }
 
   /** Recolours every visitor's name tag, now and for visitors who join later. */
@@ -128,7 +117,13 @@ export class RemotePlayersManager {
     }
   }
 
+  /** Removes every visitor and stops listening to the room, which may outlive this object. */
   public destroy(): void {
+    for (const unsubscribe of this.unsubscribers) {
+      unsubscribe();
+    }
+    this.unsubscribers.length = 0;
+
     for (const player of this.players.values()) {
       this.world.removeChild(player);
       player.destroy();

@@ -103,6 +103,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Changed
 
+- Network: `RemotePlayersManager` and `RemoteDev` stop listening to the room when destroyed
+  (needed once a room can outlive them), and the browser console no longer logs every visitor
+  joining, being added or leaving (`[REMOTE] Player added to Pixi` stays: e2e waits for it).
 - F-003: `Building` draws its footprint and title through the map's `IsometricConverter`
   instead of its own copy of the iso maths and tile size.
 - E2E: walking to a building no longer holds keys for fixed times, which depended on the frame
