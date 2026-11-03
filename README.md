@@ -130,14 +130,14 @@ The first time you run the browser tests, install Chromium with `npx playwright 
 ```
 src/                 game client
   game/              engine: Game, Map, Player, Camera, collisions, isometric maths
-    entities/        world objects (Building, Chest)
+    entities/        world objects (Building, Chest, Dev, NameTag, SpamEmail, DistrictGround)
   scenes/            Pixi scenes (MainScene is the world)
-  network/           Colyseus client and remote player sync
+  network/           Colyseus client, remote player and dev sync, move throttle
   ui/                HTML over the canvas: CV panels, dialogs, achievements
   cvPage/            the classic HTML CV page (string building)
   domain/            CV data types (Cv, Experience, Skill, Education, …)
   content/           the real CV content (French)
-  config/            client data (theme palettes)
+  config/            client data (theme palettes, achievements, Ben's lines)
 shared/              rules shared by client and server (map, buildings, preferences, spam)
 scripts/             buildCvPage.ts (npm run cv:html)
 server/              Colyseus server

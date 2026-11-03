@@ -65,7 +65,7 @@ it, or unscheduled).
 | **Delivery & deployment**                           |                                          |        |          |                                                                                                           |                        |
 | [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | Delivery | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration      |
 | [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | ✅     | Delivery | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test          |
-| [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | —                      |
+| [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
 | [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | 📋     | Delivery | —                                                                                                         | —                      |
 | [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | 💡     | Delivery | —                                                                                                         | —                      |
 
@@ -1044,6 +1044,7 @@ provider lock-in.
   GitHub Actions layer cache, starts it, polls `/health` for up to 30 s, checks that `/`
   serves the game's `index.html`, and prints the container logs on failure.
 - **Code:** `.github/workflows/ci.yml`
+- **Tests:** CI itself: the workflow fails if the build, the image or its smoke test does.
 - **Next:** optionally run the Playwright
   journeys against the container instead of the dev servers.
 

@@ -33,9 +33,9 @@ npm run check        # typecheck + lint + format:check + test (run before finish
 ```
 src/
   main.ts            entry: creates Game
-  game/              engine core: Game (Pixi app), Map, Camera, Player, CollisionMap,
-                     IsometricConverter (grid <-> screen), GridPosition
-    entities/        world objects (Building, Chest, DistrictGround)
+  game/              engine core: Game (Pixi app), Map, Camera, Player,
+                     IsometricConverter (grid <-> screen), AchievementTracker, DevChatter, ThemeCycle
+    entities/        world objects (Building, Chest, Dev, DistrictGround, NameTag, SpamEmail)
     factories/       builders for entities from config
     minigames/       the Minigame contract every minigame implements (F-070), and one
                      folder per minigame (skillBreakout/, careerTimeline/, educationQuiz/: rules + view,
