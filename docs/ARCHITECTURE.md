@@ -79,8 +79,9 @@ sequenceDiagram
   K->>P: keydown / keyup (window listeners; blur releases every key)
   Note over P: each frame: update(deltaSeconds)<br/>direction × PLAYER_SPEED × dt, canWalkTo()
   P->>S: onMove(position)
+  Note over S: MoveThrottle: at most one move<br/>per MOVE_SEND_INTERVAL_MS (50 ms)
   S->>R: room.send("move", { column, row })
-  Note over R: handleMove: finite, isWalkable,<br/>MoveBudget: ≤ 1 tile, ≤ speed over time,<br/>else ignore
+  Note over R: maxMessagesPerSecond 60, else drop the client<br/>handleMove: finite, isWalkable,<br/>MoveBudget: ≤ 1 tile, ≤ speed over time,<br/>else ignore
   R-->>O: state patch (players[sessionId])
   Note over O: RemotePlayersManager onChange<br/>→ RemotePlayer.setGridPosition
 ```

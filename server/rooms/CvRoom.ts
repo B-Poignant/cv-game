@@ -71,6 +71,12 @@ interface MoveMessage {
 export class CvRoom extends Room {
   public maxClients = 10;
 
+  /**
+   * More than this in one second and Colyseus drops the client. A real one sends at most
+   * 20 moves a second (`MOVE_SEND_INTERVAL_MS`) plus the odd intel or pitch message.
+   */
+  public maxMessagesPerSecond = 60;
+
   public state = new CvRoomState();
 
   private readonly collisions = createWorldCollisions();

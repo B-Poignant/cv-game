@@ -12,6 +12,7 @@ import {
   createWorldCollisions,
   isWalkable,
   MAP_SIZE,
+  MOVE_SEND_INTERVAL_MS,
   PLAYER_SPAWN,
 } from "../../../shared/world";
 import { DEFAULT_THEME, THEMES, type Theme } from "../../../src/config/themes";
@@ -669,6 +670,30 @@ describe("MainScene", () => {
 
       expect(network.send).toHaveBeenCalledWith("move", {
         column: expect.closeTo(PLAYER_SPAWN.column + 0.05),
+        row: PLAYER_SPAWN.row,
+      });
+    });
+
+    it("sends moves at most once per interval, ending on the latest position", () => {
+      network.connected = true;
+      const now = vi.spyOn(performance, "now").mockReturnValue(1000);
+      const { scene } = createScene();
+      network.send.mockClear();
+
+      pressKey("ArrowRight");
+      scene.update(1 / 60);
+      scene.update(1 / 60);
+      scene.update(1 / 60);
+      releaseKey("ArrowRight");
+      expect(network.send).toHaveBeenCalledOnce();
+
+      now.mockReturnValue(1000 + MOVE_SEND_INTERVAL_MS);
+      scene.update(1 / 60);
+      now.mockRestore();
+
+      expect(network.send).toHaveBeenCalledTimes(2);
+      expect(network.send).toHaveBeenLastCalledWith("move", {
+        column: expect.closeTo(PLAYER_SPAWN.column + 0.15),
         row: PLAYER_SPAWN.row,
       });
     });

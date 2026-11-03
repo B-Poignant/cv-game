@@ -52,7 +52,7 @@ src/
   content/           cv.ts: the real CV (French), typed by domain/Cv.ts; intel.ts: card texts;
                      contact.ts: the owner's contact details (F-043)
   network/           Colyseus client, remote player + dev sync, LocalIntel (own cards),
-                     PitchChannel (pitch messages)
+                     PitchChannel (pitch messages), MoveThrottle (moves at most 20/s)
 shared/              imported by BOTH client and server: no Pixi, no DOM, no Node APIs
   world.ts           MAP_SIZE, PLAYER_SPAWN, createWorldCollisions, isWalkable
   buildings.ts       building layout (+ CvSectionId)
@@ -95,7 +95,8 @@ The full rules are in `docs/ARCHITECTURE.md` (layers, where code goes) and `docs
 - **Grid coordinates** are `{ column, row }` (`GridPosition`). Convert to pixels only through
   `IsometricConverter`, never inline the iso maths.
 - **The server is authoritative.** Movement is validated in `CvRoom` (walkable tile, at most 1 tile
-  per move and `PLAYER_SPEED` over time via `MoveBudget`).
+  per move and `PLAYER_SPEED` over time via `MoveBudget`), and a client sending more than
+  `maxMessagesPerSecond` (60) is dropped, so the client sends moves through `MoveThrottle`.
   Client-side checks are only for responsiveness; any new rule must also be enforced on the server.
 - **One source for world rules.** Anything both sides need (map size, spawn, layout,
   walkability, preferences) lives in `shared/`. Never copy a value into `src/` or `server/`.

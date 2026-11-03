@@ -16,6 +16,12 @@ export const CHEST_POSITION: GridPosition = { column: 21, row: 21 };
 /** How fast recruiters walk, in tiles per second. The server enforces it. */
 export const PLAYER_SPEED = 3;
 
+/**
+ * The client sends its position at most this often (20 times a second, the server's tick).
+ * The room drops a client sending more than a few times that (`CvRoom.maxMessagesPerSecond`).
+ */
+export const MOVE_SEND_INTERVAL_MS = 50;
+
 /** The dev the recruiters chase (F-060). */
 export const DEV_NAME = "Ben";
 

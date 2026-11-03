@@ -154,6 +154,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 - F-010: a key held while switching windows (Alt-Tab) stayed pressed, so the recruiter kept
   walking on their own. Keys are released when the window loses focus or the tab is hidden;
   the skill breakout's paddle too.
+- F-022: the client sent a `move` every frame (240 a second on a 240 Hz screen) and the room
+  had no message limit. Moves now go out at most 20 times a second, and the server drops a
+  client that sends more than 60 messages in a second.
 - F-042: closing the pitch dialog after sending an offer left the map paused for good when no
   answer came (the offer was too late, or the connection dropped). Closing it now resumes the
   game, and the server answers a late offer with "Too slow, I left." instead of silence.

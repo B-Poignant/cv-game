@@ -7,6 +7,7 @@ import {
   createWorldCollisions,
   DEV_SPAWN,
   isWalkable,
+  MOVE_SEND_INTERVAL_MS,
   PLAYER_SPAWN,
 } from "../../../shared/world";
 import { useColyseusServer } from "../../helpers/colyseus";
@@ -211,6 +212,42 @@ describe("CvRoom", () => {
         );
         logged.mockRestore();
       });
+    });
+
+    // The client sends at most 20 moves a second (MOVE_SEND_INTERVAL_MS): a flood is a script.
+    it("drops a client that floods the room with messages", async () => {
+      const { room, client } = await joinRoom();
+      const left = new Promise<void>((resolve) =>
+        client.onLeave(() => resolve()),
+      );
+
+      for (
+        let message = 0;
+        message <= room.maxMessagesPerSecond;
+        message += 1
+      ) {
+        client.send("move", SPAWN);
+      }
+      await left;
+
+      expect(room.state.players.size).toBe(0);
+    });
+
+    it("keeps a client sending moves at the client's own rate", async () => {
+      const { room, client, player } = await joinRoom();
+
+      // One second of moves at 20 a second, each a small step.
+      for (let move = 1; move <= 1000 / MOVE_SEND_INTERVAL_MS; move += 1) {
+        client.send("move", {
+          column: SPAWN.column + move * 0.01,
+          row: SPAWN.row,
+        });
+      }
+      await vi.waitFor(() =>
+        expect(player().column).toBeCloseTo(SPAWN.column + 0.2),
+      );
+
+      expect(room.state.players.size).toBe(1);
     });
 
     // Each move is short enough on its own; together they're far faster than walking.

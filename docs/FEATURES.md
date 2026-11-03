@@ -201,10 +201,13 @@ at any point, in ID order, and should land before the game is shared publicly.
   `update(deltaSeconds)`, which turns the keys into a direction, normalises diagonals, and
   moves `PLAYER_SPEED` (3 tiles/s, `shared/world.ts`) × frame time, at any frame rate. A
   frame counts for at most 0.1 s, so after a pause the player steps at most 0.3 tiles.
-  Each successful move calls `onMove`, which `MainScene` sends to the server.
+  Each successful move calls `onMove`; `MainScene` sends it to the server through
+  `MoveThrottle` (`src/network/`): at most one `move` every `MOVE_SEND_INTERVAL_MS` (50 ms,
+  20 a second, `shared/world.ts`), always ending on the latest position.
 - **Code:** `src/game/Player.ts`
 - **Tests:** `tests/unit/game/Player.test.ts` (keys, collisions, 30/60/144 fps, long frames,
-  focus lost or tab hidden with a key held, listener cleanup)
+  focus lost or tab hidden with a key held, listener cleanup), `tests/unit/network/MoveThrottle.test.ts`,
+  `tests/unit/scenes/MainScene.test.ts` ("sends moves at most once per interval")
 - **Limits:** there are no touch controls. The spawn point is `PLAYER_SPAWN` in `shared/world.ts`.
 
 ### F-011 Collisions
@@ -299,13 +302,16 @@ at any point, in ID order, and should land before the game is shared publicly.
   `MoveBudget` (a token bucket): it holds at most 1 tile, so one move can't jump further, and
   refills at `PLAYER_SPEED` × 1.25 tiles/s, so sending more messages can't make a player move
   faster. The 25% margin absorbs uneven frame and network timing.
+  - `CvRoom.maxMessagesPerSecond` is 60: Colyseus drops a client sending more in one second.
+    A real client sends at most 20 moves a second (`MOVE_SEND_INTERVAL_MS`, F-010).
   - Every message handler checks its payload the same way (`collect-intel`, `pitch`), and
     `CvRoom.onUncaughtException` logs any error a handler, timer or the simulation step
     still throws, so a bug can't end the process and drop every visitor.
 - **Code:** `server/rooms/CvRoom.ts`, `server/rooms/MoveBudget.ts`
 - **Tests:** `tests/integration/server/CvRoom.test.ts` (valid moves, jumps, bursts of moves,
   bounds, buildings, malformed payloads; "malformed messages": null, a string, an array or a
-  number on `move`, `collect-intel` and `pitch`, and a throwing handler is logged),
+  number on `move`, `collect-intel` and `pitch`, and a throwing handler is logged; a flood of
+  messages drops the client, 20 moves a second don't),
   `tests/unit/server/rooms/MoveBudget.test.ts`,
   `tests/unit/shared/world.test.ts`
 - **Shared rules:** the bounds and the building footprints come from `shared/world.ts`

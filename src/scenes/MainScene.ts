@@ -11,7 +11,11 @@ import {
 import type { PitchEvent, PitchOffer } from "../../shared/pitch";
 import type { RecruiterIdentity } from "../../shared/recruiters";
 import { SPAM } from "../../shared/spam";
-import { CHEST_POSITION, MAP_SIZE } from "../../shared/world";
+import {
+  CHEST_POSITION,
+  MAP_SIZE,
+  MOVE_SEND_INTERVAL_MS,
+} from "../../shared/world";
 import { DEV_BUBBLE_LINES } from "../config/devLines";
 import type { Theme } from "../config/themes";
 import type { CvSectionId } from "../domain/Cv";
@@ -29,6 +33,7 @@ import { MultiplayerClient } from "../network/MultiplayerClient";
 import { PitchChannel } from "../network/PitchChannel";
 import { RemoteDev } from "../network/RemoteDev";
 import { RemotePlayersManager } from "../network/RemotePlayersManager";
+import { MoveThrottle } from "../network/MoveThrottle";
 import { RemoteSpam } from "../network/RemoteSpam";
 
 export interface MainSceneOptions {
@@ -78,6 +83,9 @@ export class MainScene extends Container {
   private readonly options: MainSceneOptions;
   private minigames?: MinigameLauncher;
   private paused = false;
+  private readonly moveThrottle = new MoveThrottle((position) => {
+    this.sendPlayerPosition(position);
+  }, MOVE_SEND_INTERVAL_MS);
 
   constructor(renderer: Renderer, options: MainSceneOptions = {}) {
     super();
@@ -97,7 +105,7 @@ export class MainScene extends Container {
     this.createChest();
 
     this.player = new Player(this.map, this.map.converter, (position) => {
-      this.sendPlayerPosition(position);
+      this.moveThrottle.push(position, performance.now());
     });
 
     this.world.addChild(this.player);
@@ -361,6 +369,7 @@ export class MainScene extends Container {
       this.updateDevChatter(deltaSeconds);
     }
 
+    this.moveThrottle.flush(performance.now());
     this.remoteDev?.update(deltaSeconds);
     this.updateBuildingCursors();
     this.updateDepth();
