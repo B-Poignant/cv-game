@@ -2,7 +2,7 @@ import { buildingButton, expect, openGame, test } from "./fixtures";
 
 // F-070, F-071. Recruiters spawn at (12, 12); SKILLS covers columns 5–7, rows 5–6.
 test.describe("Minigames", () => {
-  test("opening SKILLS up close plays the buzzword catcher; Escape quits to the CV", async ({
+  test("opening SKILLS up close plays the skill breakout; Escape quits to the CV", async ({
     page,
   }) => {
     const console = await openGame(page);
@@ -28,7 +28,7 @@ test.describe("Minigames", () => {
 
     await expect(panel).toBeVisible();
     await expect(page.getByRole("log")).toContainText(
-      "SKILLS PARK: BUZZWORD CATCHER: not this time. The answers are in the CV.",
+      "SKILLS PARK: SKILL BREAKOUT: not this time. The answers are in the CV.",
     );
     await expect(inventory).toHaveAccessibleName("Intel 0/3");
     expect(console.errors).toEqual([]);

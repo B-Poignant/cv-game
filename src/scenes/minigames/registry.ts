@@ -1,5 +1,5 @@
 import type { Cv } from "../../domain/Cv";
-import { BUZZWORD_CATCHER } from "../../game/minigames/buzzwordCatcher/BuzzwordCatcher";
+import { SKILL_BREAKOUT } from "../../game/minigames/skillBreakout/SkillBreakout";
 import { careerTimeline } from "../../game/minigames/careerTimeline/CareerTimeline";
 import { educationQuiz } from "../../game/minigames/educationQuiz/EducationQuiz";
 import type { MinigameRegistry } from "../MinigameFlow";
@@ -10,7 +10,7 @@ import type { MinigameRegistry } from "../MinigameFlow";
  */
 export function createMinigames(cv: Cv): MinigameRegistry {
   return {
-    skills: BUZZWORD_CATCHER,
+    skills: SKILL_BREAKOUT,
     experience: careerTimeline(cv),
     education: educationQuiz(cv),
   };

@@ -71,7 +71,7 @@ on the ground, and its building holds that section's minigame.
 
 | District          | CV section | Building minigame        | Intel it gives (examples)                  |
 | ----------------- | ---------- | ------------------------ | ------------------------------------------ |
-| Skills Park       | Skills     | Buzzword catcher (F-071) | Core stack, favourite tools, disliked tech |
+| Skills Park       | Skills     | Skill breakout (F-071)   | Core stack, favourite tools, disliked tech |
 | Experience Avenue | Experience | Career timeline (F-072)  | Seniority, industries, role types          |
 | Projects Lab      | Projects   | Project match-up (F-073) | What he likes building (not built)         |
 | Education Campus  | Education  | Quiz (F-074)             | Background and languages spoken            |
@@ -108,13 +108,16 @@ Every minigame is short (30–60 s), playable with the keyboard or mouse, and **
 section**: winning it requires noticing the real content. When it ends, the section's panel
 (F-030) opens, so even a loser reads the CV.
 
-### Skills Park: buzzword catcher (F-071), the first one to build
+### Skills Park: skill breakout (F-071), the first one to build
 
-- **Goal:** tech logos and buzzwords fall from the top. Catch the ones in the dev's real
-  stack and dodge the ones he dislikes, plus pure buzzwords ("synergy", "blockchain-native").
-- **Controls:** ←/→ (or Q/D, A/D) move a basket.
-- **Win:** reach the target score (6 points) before time runs out. Catching a disliked item costs points.
-- **Teaches:** the real skill list, and what he doesn't want.
+- **Goal:** a breakout. Only some bricks of the wall hold a word: the dev's real stack. The
+  other bricks are empty. Break every skill brick.
+- **Controls:** ←/→ (or Q/D, A/D) or the mouse move the paddle.
+- **Win:** break all the skill bricks before losing the 3 balls. Empty bricks speed the ball
+  up, so aiming at the skills pays.
+- **Teaches:** the real stack.
+- **History:** it started as a buzzword catcher (catch the stack, dodge buzzwords), replaced
+  by the breakout at the owner's request.
 - **Intel:** "Core stack: …".
 
 ### Experience Avenue: career timeline (F-072)

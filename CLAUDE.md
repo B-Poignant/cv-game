@@ -38,7 +38,7 @@ src/
     entities/        world objects (Building, Chest, DistrictGround)
     factories/       builders for entities from config
     minigames/       the Minigame contract every minigame implements (F-070), and one
-                     folder per minigame (buzzwordCatcher/, careerTimeline/, educationQuiz/: rules + view,
+                     folder per minigame (skillBreakout/, careerTimeline/, educationQuiz/: rules + view,
                      F-071/072/074), ChoiceButton + shuffle shared by the quiz-like ones
   scenes/            Pixi Containers: MainScene (world), MinigameScene + MinigameFlow (F-070),
                      minigames/registry.ts (which building runs which minigame)

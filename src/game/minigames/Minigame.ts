@@ -31,7 +31,7 @@ export interface Minigame {
 }
 
 export interface MinigameDefinition {
-  /** Shown above the play area, e.g. "SKILLS PARK: BUZZWORD CATCHER". */
+  /** Shown above the play area, e.g. "SKILLS PARK: SKILL BREAKOUT". */
   title: string;
   create(
     context: MinigameContext,

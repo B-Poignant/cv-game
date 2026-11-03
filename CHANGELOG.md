@@ -103,6 +103,10 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Changed
 
+- F-071: Skills Park's minigame is now a skill breakout instead of the buzzword catcher.
+  Only the bricks holding the dev's real stack carry a word, the others are empty; break
+  every skill brick with the paddle (←/→, Q/D, A/D or the mouse) before losing 3 balls to
+  win the "Stack principale" card. Empty bricks speed the ball up.
 - F-071: the buzzword catcher needs 6 points to win, down from 12.
 - F-031: there are now four intel cards, so the inventory counts "Intel n/3" up to the 3 needed
   to pitch and keeps listing the others.

@@ -58,7 +58,7 @@ it, or unscheduled).
 | [F-063](#f-063-recruiter-spam-hazards)              | Recruiter-spam hazards                   | ✅     | 4        | `shared/spam.ts`, `server/rooms/SpamStorm.ts`, `src/network/RemoteSpam.ts`                                | unit, integration      |
 | **Minigames**                                       |                                          |        |          |                                                                                                           |                        |
 | [F-070](#f-070-minigame-framework)                  | Minigame framework                       | ✅     | 3        | `src/game/minigames/Minigame.ts`, `src/scenes/MinigameScene.ts`, `src/scenes/MinigameFlow.ts`             | unit                   |
-| [F-071](#f-071-skills-park-buzzword-catcher)        | Skills Park: buzzword catcher            | ✅     | 3        | `src/game/minigames/buzzwordCatcher/`, `src/scenes/minigames/registry.ts`                                 | unit, e2e              |
+| [F-071](#f-071-skills-park-skill-breakout)          | Skills Park: skill breakout              | ✅     | 3        | `src/game/minigames/skillBreakout/`, `src/scenes/minigames/registry.ts`                                   | unit, e2e              |
 | [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | ✅     | 4        | `src/game/minigames/careerTimeline/`                                                                      | unit, e2e              |
 | [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | 4        | —                                                                                                         | —                      |
 | [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | ✅     | 4        | `src/game/minigames/educationQuiz/`                                                                       | unit                   |
@@ -389,7 +389,7 @@ at any point, in ID order, and should land before the game is shared publicly.
   twice, bad messages, only the sender), `tests/integration/network/LocalIntel.test.ts`;
   e2e `tests/e2e/intel.spec.ts`
 - **Limits:**
-  - Every card comes from a minigame: SKILLS from the buzzword catcher (F-071), EXPERIENCE
+  - Every card comes from a minigame: SKILLS from the skill breakout (F-071), EXPERIENCE
     from the career timeline (F-072), EDUCATION from the quiz (F-074). The Projects Lab
     (F-073) has no card yet. The cards "Outils du quotidien", "Postes occupés", "Méthode"
     and "Parcours" were proposed and are kept for later.
@@ -834,44 +834,52 @@ at any point, in ID order, and should land before the game is shared publicly.
     collect its intel." There's no replay once the card is held.
   - Ben keeps running on the server while a minigame is played.
 
-### F-071 Skills Park: buzzword catcher
+### F-071 Skills Park: skill breakout
 
-✅ Done (phase 3)
+✅ Done (phase 3; the buzzword catcher it started as was replaced by a breakout)
 
-- **What:** opening SKILLS from up close (F-070) plays it. Words fall from the top of the
-  board; a basket moved with ←/→ (Q/D, A/D) or the mouse catches them. The dev's real stack
-  scores 1 point, anything else costs 2 (never below 0). 6 points within 40 s wins the
-  "Stack principale" card (F-031); time out or Escape is a loss. The CV panel opens either way.
-- **Design:** GAME_DESIGN.md › "Skills Park: buzzword catcher".
+- **What:** opening SKILLS from up close (F-070) plays it. A breakout: a wall of 20 bricks
+  (5×4) where only the 8 bricks holding the dev's real stack carry a word; the others are
+  empty. A paddle moved with ←/→ (Q/D, A/D) or the mouse bounces the ball into the wall.
+  Breaking every skill brick wins the "Stack principale" card (F-031); losing the 3 balls or
+  Escape is a loss. Breaking an empty brick speeds the ball up a little, so aiming at the
+  skills pays. The CV panel opens either way.
+- **Design:** GAME_DESIGN.md › "Skills Park: skill breakout".
 - **How it works:**
-  - `catcherRules.ts` holds the rules as pure functions over a `CatcherState` whose positions
-    are fractions of the board (so a resize only rescales): `stepCatcher` moves the basket
-    (keys, or towards the pointer at the same speed), spawns a word every 0.9 s (60 % from
-    the stack), drops them and scores those reaching the basket; `catcherOutcome` says
-    playing / won / lost. Tuning values are in `CATCHER_RULES`. Long frames are capped at
-    0.1 s so a hidden tab doesn't skip the game.
-  - `items.ts` takes the words from `shared/`, so nothing is copied: to catch,
-    `DEV_PREFERENCES.stack`; to dodge, the stacks the pitch turns down (`STACK_OPTIONS` with a
-    reply: Java, Spring, Python, Django, COBOL) and a few pure buzzwords ("Synergy",
-    "Blockchain-native", "Rockstar", …).
-  - `BuzzwordCatcher` implements `Minigame`: it draws the score, time and instructions, the
-    words (all alike, in the theme's `label` colour: telling them apart is the game) and the
-    basket, reads the keyboard and `pointermove`, and calls `finish` once. `BUZZWORD_CATCHER`
-    is registered for `skills` in `MINIGAMES`.
-- **Code:** `src/game/minigames/buzzwordCatcher/catcherRules.ts`, `items.ts`,
-  `BuzzwordCatcher.ts`, `src/scenes/minigames/registry.ts`
-- **Tests:** `tests/unit/game/minigames/buzzwordCatcher/catcherRules.test.ts` (spawn, basket
-  bounds and pointer, scoring, floor at 0, misses, win, time out, frame cap, frozen when over,
-  a perfect player wins in time), `items.test.ts` (stack words are CV skills, no overlap),
-  `BuzzwordCatcher.test.ts` (HUD, theme, keys, pointer, win, loss, one end, cleanup); e2e
-  `tests/e2e/minigames.spec.ts` (play from up close, Escape, CV panel, no card)
+  - `breakoutRules.ts` holds the rules as pure functions over a `BreakoutState` in field
+    units (a 400×300 field, scaled evenly by the view, so a resize changes nothing):
+    `createBreakoutState` shuffles the skills across the wall and fills the rest with empty
+    bricks; `stepBreakout` moves the paddle (keys, or towards the pointer at the same
+    speed), rests the ball on the paddle for 1 s before serving it, then moves it in
+    sub-steps of at most 2 units (so it can't skip a thin brick), bouncing off the walls,
+    the paddle (wider the further from its centre, up to 60°) and the bricks it breaks;
+    a ball falling past the paddle costs a life. `breakoutOutcome` says playing / won /
+    lost. Tuning values are in `BREAKOUT_RULES`. Long frames are capped at 0.1 s.
+  - `items.ts` takes the skills from `DEV_PREFERENCES.stack` (`shared/`), so nothing is
+    copied.
+  - `SkillBreakout` implements `Minigame`: it draws the HUD (skills found, balls left, how
+    to play, the skills found so far), the field, the bricks as outlines in the theme's
+    `label` colour with the skill names on theirs (the font shrinks for long words), the
+    paddle and the ball; it reads the keyboard and `pointermove`, and calls `finish` once.
+    `SKILL_BREAKOUT` is registered for `skills` in `createMinigames`.
+- **Code:** `src/game/minigames/skillBreakout/breakoutRules.ts`, `items.ts`,
+  `SkillBreakout.ts`, `src/scenes/minigames/registry.ts`
+- **Tests:** `tests/unit/game/minigames/skillBreakout/breakoutRules.test.ts` (wall: every
+  skill, empty bricks, inside the field, shuffled; serve; paddle bounds and pointer; wall,
+  paddle and brick bounces; no tunnelling; empty bricks speed up, capped; win, lives, loss,
+  frame cap, frozen when over, a following player wins), `items.test.ts` (skills are CV
+  skills), `SkillBreakout.test.ts` (HUD, labels on skill bricks only, theme, keys, pointer,
+  win, loss, one end, cleanup); e2e `tests/e2e/minigames.spec.ts` (play from up close,
+  Escape, CV panel, no card)
 - **Limits:**
-  - Words are text, not logos (no image assets or trademarks to manage).
-  - The e2e test covers quitting, not winning: a win is random and needs ~20 s of play, so it
-    is covered by the unit tests (`BuzzwordCatcher`, and `MainScene` for the card).
-  - On a touch screen the basket follows a finger dragged over the board; there are no
+  - The e2e test covers quitting, not winning: a win needs ~30 s of play, so it is covered
+    by the unit tests (`SkillBreakout`, and `MainScene` for the card).
+  - On a touch screen the paddle follows a finger dragged over the board; there are no
     on-screen buttons.
-  - Only the 8 stack words score; other CV skills (MySQL, RabbitMQ, Cypress…) don't fall.
+  - Only the 8 stack words are on the wall; other CV skills (MySQL, RabbitMQ, Cypress…)
+    aren't. The wall holds at most 20 skills.
+  - Brick labels are sized from an estimate of the text width (Pixi can't measure text in
+    tests), so a very wide font could overflow a brick slightly.
 
 ### F-072 Experience Avenue: career timeline
 

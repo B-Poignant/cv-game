@@ -37,7 +37,7 @@ is, and the winner gets his real contact details and CV. The full story and rule
 - Open a building to read the real CV: experiences, skills, education and languages
 - Intel cards: win a building's minigame from up close, or find the chest, to collect facts
   about the dev (shown top-right)
-- Minigames: a buzzword catcher in the Skills Park, a career timeline in Experience Avenue
+- Minigames: a skill breakout in the Skills Park, a career timeline in Experience Avenue
   and a quiz in the Education Campus, each winning a card
 - Ben speaks in speech bubbles, and "exciting opportunity" spam emails fly across the map
   and slow you down
@@ -54,7 +54,7 @@ is, and the winner gets his real contact details and CV. The full story and rule
 
 1. **Foundations:** CV content and panels, the map as CV districts, recruiter names, the dev wandering.
 2. **The chase:** the dev runs away, intel cards, catch and pitch, reward panel.
-3. **Minigames:** framework, then the Skills Park buzzword catcher.
+3. **Minigames:** framework, then the Skills Park minigame (now a skill breakout).
 4. **Polish:** achievements, speech bubbles, spam hazards, the timeline and the quiz (the
    Projects Lab waits for projects in the CV).
 
