@@ -40,10 +40,7 @@ export class DistrictGround extends Container {
     const position = converter.toScreen(districtLabelPosition(district));
     this.nameText.position.set(position.x, position.y);
     // Along the column axis, so the name lies flat on the isometric ground.
-    this.nameText.rotation = Math.atan2(
-      converter.tileHeight,
-      converter.tileWidth,
-    );
+    this.nameText.rotation = converter.columnAxisAngle;
 
     this.addChild(this.outline, this.nameText);
     this.applyTheme(DEFAULT_THEME);

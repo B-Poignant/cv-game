@@ -16,6 +16,15 @@ describe("IsometricConverter", () => {
     expect(converter.toScreen({ column, row })).toEqual({ x, y });
   });
 
+  it("gives the screen angle of the column axis, for text that lies on the ground", () => {
+    const step = converter.toScreen({ column: 1, row: 0 });
+
+    expect(converter.columnAxisAngle).toBeCloseTo(Math.atan2(step.y, step.x));
+    expect(new IsometricConverter(64, 64).columnAxisAngle).toBeCloseTo(
+      Math.PI / 4,
+    );
+  });
+
   it("scales with the tile size", () => {
     const large = new IsometricConverter(128, 64);
 

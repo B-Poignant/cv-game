@@ -108,6 +108,7 @@ to [docs/FEATURES.md](docs/FEATURES.md).
   joining, being added or leaving (`[REMOTE] Player added to Pixi` stays: e2e waits for it).
 - F-011: the client builds its collisions with `createWorldCollisions()`, like the server,
   instead of blocking each building's footprint itself.
+- F-005: district names are laid on the ground with `IsometricConverter.columnAxisAngle`.
 - F-003: `Building` draws its footprint and title through the map's `IsometricConverter`
   instead of its own copy of the iso maths and tile size.
 - E2E: walking to a building no longer holds keys for fixed times, which depended on the frame
