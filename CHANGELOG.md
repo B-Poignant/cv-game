@@ -149,6 +149,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-002: after a resize or a phone rotation, the map (and a running minigame's board) was
+  fitted to the old window size and could overflow off-screen. It now refits once Pixi has
+  resized the renderer, on the renderer's own `resize` event.
 - F-022: one malformed `move` message (`null`, a string, an array…) crashed the server and
   dropped every visitor. The server now checks the payload and ignores it, and `CvRoom` logs
   any error a handler still throws (`onUncaughtException`) instead of letting Node exit.

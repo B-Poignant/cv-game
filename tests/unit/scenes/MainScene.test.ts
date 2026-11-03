@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { Container, Text, type Renderer } from "pixi.js";
+import { Container, EventEmitter, Text, type Renderer } from "pixi.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BUILDINGS } from "../../../shared/buildings";
@@ -142,8 +142,13 @@ function serverSetsSlowed(slowed: boolean): void {
   remoteSpam.onSlowedChange?.(slowed);
 }
 
+/** Like Pixi's renderer, it emits "resize" once its new size is set. */
 function fakeRenderer(width = 1280, height = 720): Renderer {
-  return { width, height, background: { color: 0 } } as unknown as Renderer;
+  return Object.assign(new EventEmitter(), {
+    width,
+    height,
+    background: { color: 0 },
+  }) as unknown as Renderer;
 }
 
 function createScene(
@@ -224,12 +229,14 @@ describe("MainScene", () => {
       ).toBe(false);
     });
 
-    it("refits the camera when the window is resized", () => {
+    // Pixi resizes the renderer a frame after the window's "resize": the camera must wait
+    // for the renderer's own event, or it fits the map to the old size.
+    it("refits the camera once the renderer has its new size", () => {
       const { world, renderer } = createScene(fakeRenderer(1920, 1080));
       expect(world.scale.x).toBe(1);
 
       Object.assign(renderer, { width: 400, height: 300 });
-      window.dispatchEvent(new Event("resize"));
+      renderer.emit("resize", 400, 300, 1);
 
       expect(world.scale.x).toBeLessThan(1);
     });
@@ -804,12 +811,12 @@ describe("MainScene", () => {
     });
 
     it("disconnects and stops listening to resize when destroyed", () => {
-      const { scene } = createScene();
+      const { scene, renderer } = createScene();
 
       scene.destroy();
 
       expect(network.disconnect).toHaveBeenCalledOnce();
-      expect(() => window.dispatchEvent(new Event("resize"))).not.toThrow();
+      expect(renderer.listenerCount("resize")).toBe(0);
     });
   });
 });

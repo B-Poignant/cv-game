@@ -112,9 +112,13 @@ at any point, in ID order, and should land before the game is shared publicly.
 - **What:** the whole map is always visible and centred, whatever the window size.
 - **How it works:** `Camera.fitMap` computes a zoom that fits the map bounds inside the
   viewport with 40px padding (never above 100%), then centres the world container.
-  `MainScene` calls `camera.resize()` on window `resize`.
+  `MainScene` calls `camera.resize()` on the renderer's `resize` event, not the window's:
+  Pixi's `ResizePlugin` only resizes the renderer on the next animation frame, so the window
+  event would fit the map to the old size. `MinigameScene` does the same for the board.
 - **Code:** `src/game/Camera.ts`, `src/scenes/MainScene.ts` (`getMapBounds`, `handleResize`)
-- **Tests:** `tests/unit/game/Camera.test.ts`; e2e "fills the window when it is resized"
+- **Tests:** `tests/unit/game/Camera.test.ts`, `tests/unit/scenes/MainScene.test.ts` ("refits the
+  camera once the renderer has its new size"); e2e `tests/e2e/game.spec.ts` ("fills the window
+  when it is resized", "refits the map to a narrower window")
 - **Limits:** there's no scrolling or follow-camera. Large maps would become tiny.
 
 ### F-003 Buildings defined in config

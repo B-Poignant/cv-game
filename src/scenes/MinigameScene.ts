@@ -70,7 +70,8 @@ export class MinigameScene extends Container {
       this.running = { game, resolve };
       this.playArea.addChild(game.view);
       window.addEventListener("keydown", this.handleKeyDown);
-      window.addEventListener("resize", this.handleResize);
+      // The renderer's event, not the window's: Pixi resizes the renderer a frame later.
+      this.renderer.on("resize", this.handleResize);
     });
   }
 
@@ -153,7 +154,7 @@ export class MinigameScene extends Container {
 
   private removeListeners(): void {
     window.removeEventListener("keydown", this.handleKeyDown);
-    window.removeEventListener("resize", this.handleResize);
+    this.renderer.off("resize", this.handleResize);
   }
 
   private handleKeyDown = (event: KeyboardEvent): void => {

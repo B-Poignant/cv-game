@@ -143,6 +143,9 @@ Conventions: `tests/README.md`. To write tests, use the `write-tests` skill
   with `isInsideGrid` / `isInsideMap` (`shared/world.ts`), never with `0 <= x < size`.
 - **CSS `display` beats the `hidden` attribute.** Any class that sets `display` on an element
   toggled with `hidden` needs a `[hidden] { display: none; }` rule (see `.cv-backdrop`).
+- **Listen to `renderer.on("resize")`, not `window`'s `resize`.** Pixi's `ResizePlugin` resizes
+  the renderer on the next animation frame, so on the window event `renderer.width` is still the
+  old size.
 - **Server message handlers take `message: unknown`** and check it before use (see
   `isMoveMessage` in `CvRoom`). Typing it as the expected shape lets `null` through, and a
   throw used to end the Node process; `onUncaughtException` now only logs it.

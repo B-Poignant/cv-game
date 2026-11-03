@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { Container, Text, type Renderer } from "pixi.js";
+import { Container, EventEmitter, Text, type Renderer } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { THEMES } from "../../../src/config/themes";
@@ -10,8 +10,12 @@ import type {
 } from "../../../src/game/minigames/Minigame";
 import { MinigameScene } from "../../../src/scenes/MinigameScene";
 
+/** Like Pixi's renderer, it emits "resize" once its new size is set. */
 function fakeRenderer(width = 1280, height = 720) {
-  return { width, height } as unknown as Renderer & {
+  return Object.assign(new EventEmitter(), {
+    width,
+    height,
+  }) as unknown as Renderer & {
     width: number;
     height: number;
   };
@@ -167,17 +171,27 @@ describe("MinigameScene", () => {
     );
   });
 
-  it("passes the new play area size on when the window is resized", () => {
+  it("passes the new play area size on once the renderer is resized", () => {
     const renderer = fakeRenderer(1280, 720);
     const scene = new MinigameScene(renderer);
     const { definition, game } = fakeMinigame();
     void scene.play(definition);
 
     renderer.width = 400;
-    window.dispatchEvent(new Event("resize"));
+    renderer.emit("resize", 400, 720, 1);
 
     const [width] = game().resize.mock.calls[0] as [number, number];
     expect(width).toBeLessThanOrEqual(400);
+  });
+
+  it("stops listening to the renderer's resize once the minigame ends", () => {
+    const renderer = fakeRenderer();
+    const scene = new MinigameScene(renderer);
+    void scene.play(fakeMinigame().definition);
+
+    scene.quit();
+
+    expect(renderer.listenerCount("resize")).toBe(0);
   });
 
   it("recolours the title and passes a theme change on to the minigame", () => {

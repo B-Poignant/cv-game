@@ -106,7 +106,8 @@ export class MainScene extends Container {
 
     this.camera.fitMap();
 
-    window.addEventListener("resize", this.handleResize);
+    // The renderer's event, not the window's: Pixi resizes the renderer a frame later.
+    this.renderer.on("resize", this.handleResize);
   }
 
   /**
@@ -405,7 +406,7 @@ export class MainScene extends Container {
   }
 
   public destroy(options?: boolean): void {
-    window.removeEventListener("resize", this.handleResize);
+    this.renderer.off("resize", this.handleResize);
 
     this.remotePlayersManager?.destroy();
     this.remoteDev?.destroy();

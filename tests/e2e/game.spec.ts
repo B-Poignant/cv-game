@@ -1,4 +1,4 @@
-import { expect, openGame, test } from "./fixtures";
+import { buildingButton, expect, openGame, test } from "./fixtures";
 
 test.describe("Visitor journey", () => {
   test("loads the game without errors", async ({ page }) => {
@@ -42,6 +42,26 @@ test.describe("Visitor journey", () => {
     await expect
       .poll(async () => (await page.locator("canvas").boundingBox())?.width)
       .toBe(800);
+  });
+
+  // Pixi resizes the renderer a frame after the window: the map must be refitted to the new
+  // size, not the old one. EXPERIENCE is the right-most building, so it overflows first.
+  test("refits the map to a narrower window", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await openGame(page);
+
+    await page.setViewportSize({ width: 600, height: 720 });
+    await expect
+      .poll(async () => (await page.locator("canvas").boundingBox())?.width)
+      .toBe(600);
+
+    const experience = await buildingButton(page, "EXPERIENCE");
+    await expect
+      .poll(async () => {
+        const box = await experience.boundingBox();
+        return box ? box.x + box.width : Infinity;
+      })
+      .toBeLessThanOrEqual(600);
   });
 });
 
