@@ -397,8 +397,9 @@ describe("MainScene", () => {
     });
 
     it("asks for the chest's card when it's tapped up close", async () => {
-      const { standAt, tap, chest } = await joinedScene();
+      const { scene, standAt, tap, chest } = await joinedScene();
       standAt(21, 20);
+      scene.update(0);
 
       tap(chest);
 
@@ -433,6 +434,19 @@ describe("MainScene", () => {
       standAt(6, 7);
       scene.update(0);
       expect(skills.cursor).toBe("pointer");
+    });
+
+    // F-040
+    it("reveals the chest only within reach", async () => {
+      const { scene, standAt, chest } = await joinedScene();
+
+      standAt(PLAYER_SPAWN.column, PLAYER_SPAWN.row);
+      scene.update(0);
+      expect(chest.revealed).toBe(false);
+
+      standAt(21, 20);
+      scene.update(0);
+      expect(chest.revealed).toBe(true);
     });
 
     it("doesn't ask again for a card already held", async () => {

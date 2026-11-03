@@ -109,7 +109,7 @@ the map. Otherwise the tap falls back to "Opening a CV section" and "Collecting 
 
 ### Collecting intel (F-031)
 
-`Chest` `pointertap`, a minigame win (`MainScene.minigameEnded`), or a building without a
+`Chest` `pointertap` (it's only clickable once revealed up close, F-040), a minigame win (`MainScene.minigameEnded`), or a building without a
 minigame opened up close (a building from afar stays shut: `onBuildingOutOfReach`) →
 `MainScene.collectIntel(source)` → (too far: `onIntelOutOfReach`) → `room.send("collect-intel", { source })` → `CvRoom` checks the source,
 the reach and duplicates → `PlayerState.intel.push(card)` → state patch → `LocalIntel` →
@@ -230,4 +230,3 @@ Things that are in the way of scaling. Fix them when a feature touches them.
 | `MainScene` creates its own `MultiplayerClient` (its URL comes from `serverEndpoint`)   | `src/scenes/MainScene.ts`, `MultiplayerClient`      | Hard to swap. Tests have to mock the module.                                     |
 | No reconciliation: a rejected move leaves the local player out of sync with the server  | `Player`, `MainScene`                               | The local and server positions can drift apart.                                  |
 | `MainScene` (~400 lines) and `CvRoom` (~360) keep growing, over the ~200-line guideline | `src/scenes/MainScene.ts`, `server/rooms/CvRoom.ts` | Split the network wiring and the spam sync out when a feature next touches them. |
-| The chest doesn't block movement                                                        | `MainScene.createChest`, `shared/world.ts`          | Recruiters walk through it.                                                      |

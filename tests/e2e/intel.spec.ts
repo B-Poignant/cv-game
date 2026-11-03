@@ -66,4 +66,32 @@ test.describe("Intel cards", () => {
     await expect(page.getByRole("dialog")).toBeHidden();
     await expect(inventory).toHaveAccessibleName("Intel 0/3");
   });
+
+  // F-040: the chest hides in a bush at (21, 21), down and right of the spawn (12, 12).
+  test("the hidden chest shows up close, and Enter opens it for the secret card", async ({
+    page,
+  }) => {
+    const console = await openGame(page);
+    await console.waitForLog("[MULTIPLAYER] Connected");
+    const inventory = page.getByRole("complementary", { name: /^Intel/ });
+    // Tab turns Pixi's keyboard layer on; the chest isn't in it from the spawn.
+    await buildingButton(page, "SKILLS");
+    const chest = page.getByRole("button", { name: "Open the chest" });
+    await expect(chest).toHaveCount(0);
+
+    // The diagonal ends against the chest, which blocks the way, so it passes within reach.
+    await page.keyboard.down("ArrowDown");
+    await page.keyboard.down("ArrowRight");
+    try {
+      await expect(chest).toBeAttached({ timeout: 10_000 });
+    } finally {
+      await page.keyboard.up("ArrowRight");
+      await page.keyboard.up("ArrowDown");
+    }
+    await chest.press("Enter");
+
+    await expect(inventory).toHaveAccessibleName("Intel 1/3");
+    await expect(inventory).toContainText("Critère éliminatoire");
+    expect(console.errors).toEqual([]);
+  });
 });

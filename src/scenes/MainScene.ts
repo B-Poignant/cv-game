@@ -44,7 +44,7 @@ export interface MainSceneOptions {
   onBuildingOutOfReach?: (section: CvSectionId) => void;
   /** Called with every intel card the visitor holds, once in the room and after each new one (F-031). */
   onIntelChange?: (cards: IntelCardId[]) => void;
-  /** Called when the visitor opens the chest from too far to earn its card. */
+  /** Called when the visitor opens the chest from too far to earn its card (it shows only up close, F-040). */
   onIntelOutOfReach?: (source: IntelSource) => void;
   /** Called when the server opens the pitch dialog, refuses a pitch or scores one (F-042). */
   onPitchEvent?: (event: PitchEvent) => void;
@@ -69,6 +69,7 @@ export class MainScene extends Container {
   private readonly map: GameMap;
   private readonly districts: DistrictGround[] = [];
   private readonly buildings = new Map<Building, CvSectionId>();
+  private readonly chest = new Chest();
   private readonly player: Player;
   private readonly camera: Camera;
 
@@ -320,18 +321,18 @@ export class MainScene extends Container {
     return !card || !this.intel.includes(card);
   }
 
+  /** The chest hides in a bush until the visitor is within reach (F-040): see `update`. */
   private createChest(): void {
-    const chest = new Chest();
-
     const position = this.map.converter.toScreen(CHEST_POSITION);
 
-    chest.position.set(position.x, position.y);
+    this.chest.position.set(position.x, position.y);
 
-    chest.on("pointertap", () => {
+    // pointertap: a click or tap, also fired by the accessibility layer (Enter).
+    this.chest.on("pointertap", () => {
       this.collectIntel("chest");
     });
 
-    this.world.addChild(chest);
+    this.world.addChild(this.chest);
   }
 
   /**
@@ -375,6 +376,10 @@ export class MainScene extends Container {
     this.moveThrottle.flush(performance.now());
     this.remoteDev?.update(deltaSeconds);
     this.updateBuildingCursors();
+    this.chest.revealed = isWithinIntelReach(
+      this.player.getGridPosition(),
+      "chest",
+    );
     this.updateDepth();
   }
 

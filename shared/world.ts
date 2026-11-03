@@ -50,7 +50,7 @@ export const DEV_SPRINT = {
   cooldownSeconds: 1.5,
 } as const;
 
-/** Collision map with every building footprint blocked. */
+/** Collision map with every building footprint and the chest (F-040) blocked. */
 export function createWorldCollisions(
   buildings: readonly BuildingDefinition[] = BUILDINGS,
 ): CollisionMap {
@@ -59,6 +59,8 @@ export function createWorldCollisions(
   for (const { gridPosition, width, height } of buildings) {
     collisions.blockArea(gridPosition.column, gridPosition.row, width, height);
   }
+
+  collisions.blockArea(CHEST_POSITION.column, CHEST_POSITION.row, 1, 1);
 
   return collisions;
 }

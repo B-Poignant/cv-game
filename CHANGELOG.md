@@ -103,6 +103,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Changed
 
+- F-040: the chest is hidden in a bush. It shows itself only within reach (2 tiles), where
+  it can be clicked or opened with Tab and Enter; its tile blocks recruiters and Ben, and the
+  server refuses a move onto it.
 - Network: `RemotePlayersManager` and `RemoteDev` stop listening to the room when destroyed
   (needed once a room can outlive them), and the browser console no longer logs every visitor
   joining, being added or leaving (`[REMOTE] Player added to Pixi` stays: e2e waits for it).

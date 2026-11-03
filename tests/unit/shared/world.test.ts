@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { BUILDINGS } from "../../../shared/buildings";
 import {
+  CHEST_POSITION,
   createWorldCollisions,
   DEV_SPAWN,
   DEV_SPEED,
@@ -94,6 +95,16 @@ describe("world rules (shared by client and server)", () => {
       expect(collisions.isBlocked({ column: 4, row: 5 })).toBe(false);
       expect(collisions.isBlocked({ column: 7, row: 5 })).toBe(false);
       expect(collisions.isBlocked({ column: 5, row: 6 })).toBe(false);
+    });
+
+    // F-040: the chest is an object in the way, for recruiters and for Ben.
+    it("blocks the chest tile, and only that tile", () => {
+      const collisions = createWorldCollisions([]);
+      const { column, row } = CHEST_POSITION;
+
+      expect(collisions.isBlocked(CHEST_POSITION)).toBe(true);
+      expect(collisions.isBlocked({ column: column - 1, row })).toBe(false);
+      expect(collisions.isBlocked({ column, row: row - 1 })).toBe(false);
     });
   });
 

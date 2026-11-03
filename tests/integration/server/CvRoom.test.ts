@@ -294,6 +294,18 @@ describe("CvRoom", () => {
       expect(player()).toMatchObject({ column: 15, row: 5 });
     });
 
+    // F-040: the chest is at (21, 21).
+    it("rejects a step onto the chest", async () => {
+      const { room, client, player } = await joinRoom();
+      player().column = 20;
+      player().row = 21;
+
+      client.send("move", { column: 21, row: 21 });
+      await room.waitForNextMessage();
+
+      expect(player()).toMatchObject({ column: 20, row: 21 });
+    });
+
     it("rejects a small step that rounds onto a building", async () => {
       const { room, client, player } = await joinRoom();
       player().column = 15;

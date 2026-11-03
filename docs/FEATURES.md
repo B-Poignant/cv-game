@@ -43,7 +43,7 @@ it, or unscheduled).
 | [F-031](#f-031-intel-cards)                         | Intel cards                              | ✅     | 2        | `shared/intel.ts`, `src/content/intel.ts`, `src/ui/IntelInventory.ts`, `src/network/LocalIntel.ts`        | unit, integration, e2e |
 | [F-032](#f-032-classic-html-cv-page)                | Classic HTML CV page (`/cv`)             | ✅     | —        | `src/cvPage/`, `scripts/buildCvPage.ts`, `vite.config.ts`                                                 | unit, e2e              |
 | **Interactions**                                    |                                          |        |          |                                                                                                           |                        |
-| [F-040](#f-040-clickable-chest)                     | Clickable chest on the map               | 🚧     | —        | `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`                                | unit, integration      |
+| [F-040](#f-040-hidden-chest)                        | Hidden chest on the map                  | ✅     | —        | `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`                                | unit, integration, e2e |
 | [F-041](#f-041-achievements)                        | Achievements                             | ✅     | 4        | `src/config/achievements.ts`, `src/game/AchievementTracker.ts`, `src/ui/AchievementsPanel.ts`             | unit                   |
 | [F-042](#f-042-catch-and-pitch)                     | Catch + pitch dialog                     | ✅     | 2        | `shared/pitch.ts`, `server/rooms/PitchTracker.ts`, `src/network/PitchChannel.ts`, `src/ui/PitchDialog.ts` | unit, integration, e2e |
 | [F-043](#f-043-reward-panel)                        | Reward panel: contact info + CV PDF      | ✅     | 2        | `src/content/contact.ts`, `src/ui/rewardSection.ts`, `src/ui/PitchFlow.ts`                                | unit                   |
@@ -473,19 +473,30 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ## Interactions
 
-### F-040 Clickable chest
+### F-040 Hidden chest
 
-🚧 Partial
+✅ Done
 
-- **What:** a chest at tile (21, 21) that gives the secret intel card when tapped up close (F-031).
-- **How it works:** `Chest` is a clickable container. `MainScene.createChest` places it at
-  `CHEST_POSITION` (`shared/world.ts`, also used by the server's reach check) and calls
-  `collectIntel("chest")` on `pointertap`.
+- **What:** a chest hidden in a bush at tile (21, 21), which gives the secret intel card
+  (F-031) when opened up close.
+- **How it works:**
+  - From afar, only a bush shows on the tile. `MainScene.update` sets `Chest.revealed` when the
+    visitor is within reach (`isWithinIntelReach(position, "chest")`, 2 tiles): the bush
+    steps aside and the chest appears.
+  - Only revealed is it a button: clickable (pointer cursor), and listed by Pixi's
+    accessibility layer as "Open the chest", so Tab and Enter open it like a building.
+    Hidden, it can't be clicked or reached with Tab. `pointertap` calls `collectIntel("chest")`.
+  - The tile is blocked by `createWorldCollisions` (`shared/world.ts`), so the server refuses
+    a move onto it, and Ben walks around it.
+  - `CHEST_POSITION` (`shared/world.ts`) is also used by the server's reach check.
 - **Code:** `src/game/entities/Chest.ts`, `src/scenes/MainScene.ts`, `shared/world.ts`
-- **Tests:** `tests/unit/game/entities/Chest.test.ts` (clickable), `tests/unit/scenes/MainScene.test.ts`
-  ("collecting intel"), `tests/integration/server/CvRoom.test.ts` (the chest's card)
-- **Limits:** it doesn't block movement, it can't be reached with the keyboard (it's not an
-  accessible object like the buildings), and it's in plain sight rather than hidden.
+- **Tests:** `tests/unit/game/entities/Chest.test.ts` (hidden, revealed, hidden again),
+  `tests/unit/scenes/MainScene.test.ts` ("collecting intel": revealed only within reach, the
+  chest's card), `tests/unit/shared/world.test.ts` (the chest tile is blocked),
+  `tests/integration/server/CvRoom.test.ts` (the chest's card, a step onto the chest is
+  refused), `tests/e2e/intel.spec.ts` (walk up, Enter, the secret card)
+- **Limits:** the bush and chest keep their own colours, whatever the theme. The bush is the
+  only one on the map, so it gives the hiding place away to anyone who looks.
 
 ### F-041 Achievements
 
@@ -568,8 +579,8 @@ at any point, in ID order, and should land before the game is shared publicly.
   - If the result never arrives (server gone), the dialog shows "Ben is thinking…" until
     the visitor closes it, which resumes the scene. An answer that arrives after that still
     opens the dialog to show it.
-  - The full journey (3 cards, catch, pitch) has no e2e test: the chest can only be clicked
-    on the canvas, so it's covered by the integration tests instead.
+  - The full journey (3 cards, catch, pitch) has no e2e test; it's covered by the
+    integration tests. Since F-040 the chest opens with the keyboard, so one can be written.
 
 ### F-043 Reward panel
 
@@ -597,8 +608,7 @@ at any point, in ID order, and should land before the game is shared publicly.
 - **Limits:**
   - The contact details ship in the client bundle and the repo is public, so they aren't
     secret: anyone (and spam bots) can read the email. The PDF itself also contains it.
-  - No e2e test of the full loop: the chest can only be clicked on the canvas, so it needs a
-    way to reach it with the keyboard first (F-040).
+  - No e2e test of the full loop (now possible: the chest opens with the keyboard, F-040).
   - The "Hired the dev" achievement is part of F-041.
   - `public/CV_POIGNANT_BENJAMIN.pdf` is a LinkedIn export, separate from `src/content/cv.ts`: update both
     when the CV changes.
