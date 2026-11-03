@@ -143,6 +143,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-032: `npm run dev` no longer warns that `vite.config.ts` uses features unsupported by
+  `configLoader: 'native'`. The dev `/cv/` route now loads the CV modules through Vite
+  (`ssrLoadModule`) instead of importing them into the config.
 - F-030: the skill level dots were uneven: filled (●) and empty (○) dots came out at
   different sizes depending on the font. They are now drawn in CSS, all the same size.
 - E2E: the multiplayer journeys could time out when test files ran in parallel against the
