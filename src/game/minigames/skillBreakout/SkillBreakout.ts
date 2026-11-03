@@ -95,6 +95,8 @@ export class SkillBreakout implements Minigame {
     this.view.addChild(this.hud, this.field, this.labelLayer);
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("keyup", this.handleKeyUp);
+    // A key released in another window never sends its keyup here.
+    window.addEventListener("blur", this.releaseKeys);
 
     this.resize(context.width, context.height);
   }
@@ -162,6 +164,7 @@ export class SkillBreakout implements Minigame {
   public destroy(): void {
     window.removeEventListener("keydown", this.handleKeyDown);
     window.removeEventListener("keyup", this.handleKeyUp);
+    window.removeEventListener("blur", this.releaseKeys);
     this.view.off("pointermove", this.handlePointerMove);
     this.view.destroy({ children: true });
     this.brickLabels.clear();
@@ -269,6 +272,11 @@ export class SkillBreakout implements Minigame {
   private toY(y: number): number {
     return this.origin.y + y * this.scale;
   }
+
+  private releaseKeys = (): void => {
+    this.keys.left = false;
+    this.keys.right = false;
+  };
 
   private handleKeyDown = (event: KeyboardEvent): void => {
     this.setKey(event.key, true);

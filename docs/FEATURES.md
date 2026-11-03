@@ -196,14 +196,15 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 - **What:** smooth movement with the arrows, ZQSD (AZERTY) or WASD (QWERTY).
 - **How it works:** `Player` tracks pressed keys from `window` keydown/keyup (removed again
-  in `destroy()`). Each frame, `Game` passes the ticker's frame time down to
+  in `destroy()`), and forgets them all when the window loses focus or the tab is hidden: a
+  key released in another window never sends its keyup, so the recruiter would keep walking. Each frame, `Game` passes the ticker's frame time down to
   `update(deltaSeconds)`, which turns the keys into a direction, normalises diagonals, and
   moves `PLAYER_SPEED` (3 tiles/s, `shared/world.ts`) × frame time, at any frame rate. A
   frame counts for at most 0.1 s, so after a pause the player steps at most 0.3 tiles.
   Each successful move calls `onMove`, which `MainScene` sends to the server.
 - **Code:** `src/game/Player.ts`
 - **Tests:** `tests/unit/game/Player.test.ts` (keys, collisions, 30/60/144 fps, long frames,
-  listener cleanup)
+  focus lost or tab hidden with a key held, listener cleanup)
 - **Limits:** there are no touch controls. The spawn point is `PLAYER_SPAWN` in `shared/world.ts`.
 
 ### F-011 Collisions

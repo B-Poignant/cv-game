@@ -76,7 +76,7 @@ sequenceDiagram
   participant S as MainScene
   participant R as CvRoom (server)
   participant O as Other clients
-  K->>P: keydown / keyup (window listeners)
+  K->>P: keydown / keyup (window listeners; blur releases every key)
   Note over P: each frame: update(deltaSeconds)<br/>direction × PLAYER_SPEED × dt, canWalkTo()
   P->>S: onMove(position)
   S->>R: room.send("move", { column, row })

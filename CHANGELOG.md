@@ -151,6 +151,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Fixed
 
+- F-010: a key held while switching windows (Alt-Tab) stayed pressed, so the recruiter kept
+  walking on their own. Keys are released when the window loses focus or the tab is hidden;
+  the skill breakout's paddle too.
 - F-042: closing the pitch dialog after sending an offer left the map paused for good when no
   answer came (the offer was too late, or the connection dropped). Closing it now resumes the
   game, and the server answers a late offer with "Too slow, I left." instead of silence.

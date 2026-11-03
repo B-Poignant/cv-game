@@ -96,6 +96,35 @@ describe("Player", () => {
     expect(player.getGridPosition()).toEqual(afterRelease);
   });
 
+  // Alt-Tab with a key held: its keyup goes to another window, never to this page.
+  it.each([
+    {
+      label: "the window loses focus",
+      leave: () => window.dispatchEvent(new Event("blur")),
+    },
+    {
+      label: "the tab is hidden",
+      leave: () => {
+        Object.defineProperty(document, "visibilityState", {
+          value: "hidden",
+          configurable: true,
+        });
+        document.dispatchEvent(new Event("visibilitychange"));
+        Reflect.deleteProperty(document, "visibilityState");
+      },
+    },
+  ])("stops when $label with a key held", ({ leave }) => {
+    pressKey("ArrowRight");
+    player.update(FRAME);
+    leave();
+    const afterLeaving = player.getGridPosition();
+
+    player.update(FRAME);
+
+    expect(player.getGridPosition()).toEqual(afterLeaving);
+    releaseKey("ArrowRight");
+  });
+
   it("cancels out opposite directions", () => {
     pressKey("ArrowLeft");
     pressKey("ArrowRight");
@@ -179,7 +208,11 @@ describe("Player", () => {
 
     other.destroy();
 
-    expect(listeners.map(([type]) => type)).toEqual(["keydown", "keyup"]);
+    expect(listeners.map(([type]) => type)).toEqual([
+      "keydown",
+      "keyup",
+      "blur",
+    ]);
     for (const [type, listener] of listeners) {
       expect(remove).toHaveBeenCalledWith(type, listener);
     }

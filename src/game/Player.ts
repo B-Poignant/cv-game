@@ -81,7 +81,23 @@ export class Player extends Container {
   private setupKeyboard(): void {
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("keyup", this.handleKeyUp);
+    // A key released in another window never sends its keyup here.
+    window.addEventListener("blur", this.releaseKeys);
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
   }
+
+  private releaseKeys = (): void => {
+    this.keys.up = false;
+    this.keys.down = false;
+    this.keys.left = false;
+    this.keys.right = false;
+  };
+
+  private handleVisibilityChange = (): void => {
+    if (document.visibilityState === "hidden") {
+      this.releaseKeys();
+    }
+  };
 
   private handleKeyDown = (event: KeyboardEvent): void => {
     this.setKey(event.key, true);
@@ -197,6 +213,11 @@ export class Player extends Container {
   public destroy(options?: Parameters<Container["destroy"]>[0]): void {
     window.removeEventListener("keydown", this.handleKeyDown);
     window.removeEventListener("keyup", this.handleKeyUp);
+    window.removeEventListener("blur", this.releaseKeys);
+    document.removeEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange,
+    );
 
     super.destroy(options);
   }

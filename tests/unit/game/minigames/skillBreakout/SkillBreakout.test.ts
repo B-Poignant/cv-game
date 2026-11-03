@@ -95,6 +95,19 @@ describe("SkillBreakout", () => {
     expect(Math.sign(game.paddleX - 200)).toBe(sign);
   });
 
+  it("stops the paddle when the window loses focus with a key held", () => {
+    const { game } = createGame();
+    pressKey("ArrowRight");
+    game.update(0.1);
+
+    window.dispatchEvent(new Event("blur"));
+    const position = game.paddleX;
+    game.update(0.1);
+    releaseKey("ArrowRight");
+
+    expect(game.paddleX).toBe(position);
+  });
+
   it("follows the pointer, converted to field units", () => {
     const { game } = createGame();
     const event = new FederatedPointerEvent({} as EventBoundary);
