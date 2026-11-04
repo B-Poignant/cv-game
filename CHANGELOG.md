@@ -6,6 +6,8 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-04
+
 ### Added
 
 - F-051: a debug mode. The 🐞 Debug button shows a live readout (position, the server's
