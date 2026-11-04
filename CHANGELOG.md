@@ -10,6 +10,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 - F-075: the skill breakout hides the mouse cursor over its field, since the paddle already
   follows the pointer. The timeline and the quiz, played with buttons, keep it.
+- F-083: pushing a `v*` release tag publishes the Docker image to GitHub Container Registry
+  (`ghcr.io/b-poignant/cv-game`, tagged `<version>`, `<major>.<minor>` and `latest`), once
+  every CI check has passed.
 - `review-project` skill: a slice-by-slice review of the whole codebase that writes a
   prioritised report to `docs/reviews/`. First report: `docs/reviews/2026-10-30.md`.
 - F-032: a classic HTML CV page at `/cv/`, generated from the CV content by

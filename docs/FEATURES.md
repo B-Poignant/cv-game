@@ -67,7 +67,7 @@ it, or unscheduled).
 | [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | Delivery | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration      |
 | [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | ✅     | Delivery | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test          |
 | [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
-| [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | 📋     | Delivery | —                                                                                                         | —                      |
+| [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | 🚧     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
 | [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | 💡     | Delivery | —                                                                                                         | —                      |
 
 ## Roadmap
@@ -1080,16 +1080,23 @@ provider lock-in.
 
 ### F-083 Publish the image on release
 
-📋 Planned
+🚧 In progress: the workflow is written; it hasn't run yet, since no `v*` tag has been pushed.
 
 - **What:** cutting a release publishes a versioned image to a registry, ready to deploy.
 - **Depends on:** F-082.
+- **How it works:** `.github/workflows/ci.yml` also runs on `v*` tags. Its `publish` job
+  runs only on such a tag and `needs` `check`, `e2e` and `docker`, so nothing is published
+  unless every check passed for that commit. It logs in to GitHub Container Registry with the
+  built-in `GITHUB_TOKEN` (the job alone gets `packages: write`), lets
+  `docker/metadata-action` derive the tags `<version>`, `<major>.<minor>` and `latest` from
+  the git tag, and builds and pushes `ghcr.io/b-poignant/cv-game` with the layer cache the
+  `docker` job filled. The `release` skill (step 5) says what to tell the user after the push.
+- **Code:** `.github/workflows/ci.yml` (`publish` job), `.claude/skills/release/SKILL.md`
+- **Tests:** CI itself, on the first release tag.
 - **To do:**
-  - a workflow on `v*` tags that builds and pushes to GitHub Container Registry
-    (`ghcr.io/<owner>/cv-game`) with tags `<version>`, `<major>.<minor>` and `latest`, using
-    the built-in `GITHUB_TOKEN`
-  - only publish once the CI checks pass for that commit
-  - add the image step to the `release` skill and the CHANGELOG release notes
+  - push the first release tag and check the job publishes the three tags; then mark ✅
+  - make the package public once in its GitHub settings (it starts private)
+- **Limits:** the image is built for `linux/amd64` only.
 
 ### F-084 Deploy to a host
 

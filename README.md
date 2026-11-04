@@ -88,7 +88,8 @@ npm start       # http://localhost:2567 serves the game and the multiplayer room
 Or with Docker: `docker compose up --build`. Settings (environment variables): `PORT`
 (default `2567`), `CLIENT_DIR` (default `dist`), `DEV_WANDERS=false` to keep the dev still
 (used by e2e tests), and `VITE_SERVER_URL` at build time if the multiplayer server runs on
-another host. `GET /health` answers `{ "status": "ok" }`.
+another host. `GET /health` answers `{ "status": "ok" }`. Each release (`v*` tag) also
+publishes the image as `ghcr.io/b-poignant/cv-game:<version>` (and `latest`).
 
 ### Controls
 
@@ -152,7 +153,7 @@ docs/
   FEATURES.md        feature registry: status and how each feature works
   ARCHITECTURE.md    layers, data flow, how to extend
   CODE_STYLE.md      how to write the code
-.github/workflows/   CI (typecheck, lint, tests, build, e2e, Docker smoke test)
+.github/workflows/   CI (typecheck, lint, tests, build, e2e, Docker smoke test, image publish on release)
 Dockerfile           production image (server + built client), compose.yaml to run it
 .claude/             Claude Code skills, agents and hooks
 ```

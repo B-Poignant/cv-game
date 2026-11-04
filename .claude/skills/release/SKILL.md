@@ -38,3 +38,14 @@ git tag -a vX.Y.Z -m "vX.Y.Z"
 
 Show the CHANGELOG section for this version as the release notes. Don't push; tell the user
 the command (`git push --follow-tags`).
+
+## 5. The image (F-083)
+
+Pushing the tag publishes the Docker image: the `publish` job in `.github/workflows/ci.yml`
+runs on `v*` tags once `check`, `e2e` and `docker` pass, and pushes
+`ghcr.io/b-poignant/cv-game` tagged `X.Y.Z`, `X.Y` and `latest`. After the push, point the
+user to `https://github.com/B-Poignant/cv-game/actions` to watch it, and add a line to the
+release notes: `docker pull ghcr.io/b-poignant/cv-game:X.Y.Z`.
+
+The first published package is private on GitHub. To let anyone pull it, the owner makes it
+public once in the package settings (GitHub › Packages › cv-game › Package settings).
