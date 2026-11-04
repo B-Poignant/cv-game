@@ -119,6 +119,32 @@ describe("SkillBreakout", () => {
     expect(game.paddleX).toBeCloseTo(220);
   });
 
+  it("hides the cursor over the field only, since the paddle follows it", () => {
+    const { game } = createGame();
+    const hidden = game.view.children.filter(
+      (child) => child.cursor === "none",
+    );
+
+    expect(game.view.cursor ?? "default").not.toBe("none");
+    expect(hidden).toHaveLength(1);
+    expect(hidden[0].eventMode).toBe("static");
+    expect(hidden[0].hitArea).toMatchObject({
+      x: 0,
+      y: 64,
+      width: 600,
+      height: 450,
+    });
+
+    game.resize(400, 364);
+
+    expect(hidden[0].hitArea).toMatchObject({
+      x: 0,
+      y: 64,
+      width: 400,
+      height: 300,
+    });
+  });
+
   it("reports a win once the skill bricks are broken, and lists them", () => {
     const { game, finish } = createGame(() => 0.3);
 

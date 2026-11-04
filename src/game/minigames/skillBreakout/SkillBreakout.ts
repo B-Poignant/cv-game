@@ -92,6 +92,9 @@ export class SkillBreakout implements Minigame {
     this.view.label = "skill-breakout";
     this.view.eventMode = "static";
     this.view.on("pointermove", this.handlePointerMove);
+    // The paddle follows the pointer, so the cursor would only hide the field (F-075).
+    this.field.eventMode = "static";
+    this.field.cursor = "none";
     this.view.addChild(this.hud, this.field, this.labelLayer);
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("keyup", this.handleKeyUp);
@@ -152,6 +155,12 @@ export class SkillBreakout implements Minigame {
       y: HUD_HEIGHT,
     };
     this.view.hitArea = new Rectangle(0, 0, width, height);
+    this.field.hitArea = new Rectangle(
+      this.origin.x,
+      this.origin.y,
+      field.width * this.scale,
+      field.height * this.scale,
+    );
     this.fitLabels();
     this.draw();
   }

@@ -8,6 +8,8 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Added
 
+- F-075: the skill breakout hides the mouse cursor over its field, since the paddle already
+  follows the pointer. The timeline and the quiz, played with buttons, keep it.
 - `review-project` skill: a slice-by-slice review of the whole codebase that writes a
   prioritised report to `docs/reviews/`. First report: `docs/reviews/2026-10-30.md`.
 - F-032: a classic HTML CV page at `/cv/`, generated from the CV content by
