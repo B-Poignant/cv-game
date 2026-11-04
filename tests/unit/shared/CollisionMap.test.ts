@@ -66,3 +66,23 @@ describe("../../../shared/CollisionMap", () => {
     });
   });
 });
+
+describe("blockedPositions", () => {
+  it("lists every blocked tile once, negative ones included", () => {
+    const collisions = new CollisionMap();
+
+    collisions.blockArea(1, 2, 2, 1);
+    collisions.block(1, 2);
+    collisions.block(-1, 0);
+
+    expect(collisions.blockedPositions()).toEqual([
+      { column: 1, row: 2 },
+      { column: 2, row: 2 },
+      { column: -1, row: 0 },
+    ]);
+  });
+
+  it("is empty when nothing is blocked", () => {
+    expect(new CollisionMap().blockedPositions()).toEqual([]);
+  });
+});

@@ -18,6 +18,7 @@ import {
 import { DEFAULT_THEME, THEMES, type Theme } from "../../../src/config/themes";
 import { Building } from "../../../src/game/entities/Building";
 import { Chest } from "../../../src/game/entities/Chest";
+import { DebugOverlay } from "../../../src/game/entities/DebugOverlay";
 import { DistrictGround } from "../../../src/game/entities/DistrictGround";
 import { GameMap } from "../../../src/game/Map";
 import { Player } from "../../../src/game/Player";
@@ -256,11 +257,14 @@ describe("MainScene", () => {
       const { scene, world } = createScene();
 
       scene.update(1 / 60);
+      const sorted = world.children.filter(
+        (child) => !(child instanceof DebugOverlay),
+      );
 
-      for (const child of world.children) {
+      for (const child of sorted) {
         expect(child.zIndex).toBe(child.y);
       }
-      const order = world.children.map((child) => child.zIndex);
+      const order = sorted.map((child) => child.zIndex);
       expect(order).toEqual([...order].sort((a, b) => a - b));
     });
 
@@ -274,7 +278,77 @@ describe("MainScene", () => {
       scene.update(1 / 60);
 
       expect(world.children[0]).toBe(back);
-      expect(world.children.at(-1)).toBe(front);
+      expect(world.children.at(-2)).toBe(front);
+    });
+
+    // F-051
+    it("keeps the debug overlay on top of everything", () => {
+      const { scene, world } = createScene();
+      world.addChild(new Container()).y = 1_000_000;
+
+      scene.update(1 / 60);
+
+      expect(world.children.at(-1)).toBeInstanceOf(DebugOverlay);
+    });
+  });
+
+  // F-051
+  describe("debug mode", () => {
+    it("is off at first: the overlay is hidden and there is no readout", () => {
+      const { scene, ofType } = createScene();
+
+      scene.update(1 / 60);
+
+      expect(ofType(DebugOverlay)[0].visible).toBe(false);
+      expect(scene.debugLines).toEqual([]);
+    });
+
+    it("once on, shows the overlay and reads the player's position, speed and the network", () => {
+      const { scene, ofType } = createScene();
+
+      scene.setDebugVisible(true);
+      scene.update(1 / 60);
+      pressKey("ArrowRight");
+      scene.update(0.1);
+      releaseKey("ArrowRight");
+
+      expect(ofType(DebugOverlay)[0].visible).toBe(true);
+      expect(scene.debugLines).toEqual(
+        expect.arrayContaining([
+          `Player   (${(PLAYER_SPAWN.column + 0.3).toFixed(2)}, ${PLAYER_SPAWN.row.toFixed(2)})  tile (${String(PLAYER_SPAWN.column)}, ${String(PLAYER_SPAWN.row)})`,
+          "Speed    3.00 tiles/s  → right",
+          "Network  offline",
+          "Others   0",
+        ]),
+      );
+    });
+
+    it("hides the overlay and clears the readout once off", () => {
+      const { scene, ofType } = createScene();
+      scene.setDebugVisible(true);
+      scene.update(1 / 60);
+
+      scene.setDebugVisible(false);
+      scene.update(1 / 60);
+
+      expect(ofType(DebugOverlay)[0].visible).toBe(false);
+      expect(scene.debugLines).toEqual([]);
+    });
+
+    it("doesn't change the game: the player moves the same with it on", () => {
+      const off = createScene();
+      const on = createScene();
+      on.scene.setDebugVisible(true);
+
+      for (const { scene } of [off, on]) {
+        pressKey("ArrowDown");
+        scene.update(0.1);
+        releaseKey("ArrowDown");
+      }
+
+      expect(on.ofType(Player)[0].getGridPosition()).toEqual(
+        off.ofType(Player)[0].getGridPosition(),
+      );
     });
   });
 

@@ -17,7 +17,7 @@ is, and the winner gets his real contact details and CV. The full story and rule
 > finding the chest) earns an intel card about him (each building makes you win its
 > minigame first), and with 3 cards you can catch him and pitch him a job; a good pitch shows
 > his contact details and CV. Ben taunts you in speech bubbles, spam emails slow you down, and
-> five achievements are up for grabs. Only the Projects Lab minigame is missing (the CV has
+> five achievements are up for grabs. A 🐞 debug mode shows what the code is doing. Only the Projects Lab minigame is missing (the CV has
 > no projects yet). Prefer to skip the game? A classic HTML CV is served at `/cv/`.
 
 ## Features
@@ -102,6 +102,7 @@ publishes the image as `ghcr.io/b-poignant/cv-game:<version>` (and `latest`).
 | Open a building | Walk up to it (2 tiles), then click it, or Tab to it and press Enter |
 | Close a panel   | Escape, ✕, or click outside                                          |
 | Theme           | Click 🎨 (top-left)                                                  |
+| Debug mode      | Click 🐞 Debug (bottom-right)                                        |
 
 ## Scripts
 
@@ -130,11 +131,11 @@ The first time you run the browser tests, install Chromium with `npx playwright 
 
 ```
 src/                 game client
-  game/              engine: Game, Map, Player, Camera, collisions, isometric maths
-    entities/        world objects (Building, Chest, Dev, NameTag, SpamEmail, DistrictGround)
+  game/              engine: Game, Map, Player, Camera, collisions, isometric maths, DebugMeter
+    entities/        world objects (Building, Chest, Dev, NameTag, SpamEmail, DistrictGround, DebugOverlay)
   scenes/            Pixi scenes (MainScene is the world)
   network/           Colyseus client, remote player and dev sync, move throttle
-  ui/                HTML over the canvas: CV panels, dialogs, achievements
+  ui/                HTML over the canvas: CV panels, dialogs, achievements, debug panel
   cvPage/            the classic HTML CV page (string building)
   domain/            CV data types (Cv, Experience, Skill, Education, …)
   content/           the real CV content (French)

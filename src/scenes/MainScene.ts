@@ -21,11 +21,13 @@ import { DEV_BUBBLE_LINES } from "../config/devLines";
 import type { Theme } from "../config/themes";
 import type { CvSectionId } from "../domain/Cv";
 import { Camera, type MapBounds } from "../game/Camera";
+import { DebugMeter, type DebugSample } from "../game/DebugMeter";
 import { DevChatter } from "../game/DevChatter";
 import { GameMap } from "../game/Map";
 import { Player } from "../game/Player";
 import type { Building } from "../game/entities/Building";
 import { Chest } from "../game/entities/Chest";
+import { DebugOverlay } from "../game/entities/DebugOverlay";
 import { DistrictGround } from "../game/entities/DistrictGround";
 import { BuildingFactory } from "../game/factories/BuildingFactory";
 import type { MinigameResult } from "../game/minigames/Minigame";
@@ -72,6 +74,9 @@ export class MainScene extends Container {
   private readonly chest = new Chest();
   private readonly player: Player;
   private readonly camera: Camera;
+  private readonly debugOverlay: DebugOverlay;
+  private debugMeter = new DebugMeter();
+  private debugReadout: readonly string[] = [];
 
   private readonly multiplayerClient = new MultiplayerClient();
   private readonly devChatter = new DevChatter(DEV_BUBBLE_LINES);
@@ -118,6 +123,12 @@ export class MainScene extends Container {
     });
 
     this.world.addChild(this.player);
+
+    this.debugOverlay = new DebugOverlay(
+      this.map.converter,
+      this.map.collisions.blockedPositions(),
+    );
+    this.world.addChild(this.debugOverlay);
 
     this.camera = new Camera(this.world, this.renderer, this.getMapBounds());
 
@@ -353,6 +364,7 @@ export class MainScene extends Container {
     }
 
     this.player.applyTheme(theme);
+    this.debugOverlay.applyTheme(theme);
     this.remotePlayersManager?.applyTheme(theme);
     this.remoteDev?.applyTheme(theme);
     this.remoteSpam?.applyTheme(theme);
@@ -380,7 +392,45 @@ export class MainScene extends Container {
       this.player.getGridPosition(),
       "chest",
     );
+    this.updateDebug(deltaSeconds);
     this.updateDepth();
+  }
+
+  /** Shows or hides the debug overlay and starts or stops its readout (F-051). */
+  public setDebugVisible(visible: boolean): void {
+    if (visible && !this.debugOverlay.visible) {
+      // A fresh meter: the speed isn't measured against where the player was last time.
+      this.debugMeter = new DebugMeter();
+    }
+
+    this.debugOverlay.visible = visible;
+    if (!visible) {
+      this.debugReadout = [];
+    }
+  }
+
+  /** The debug readout's lines (F-051), refreshed every frame while debug is on. */
+  public get debugLines(): readonly string[] {
+    return this.debugReadout;
+  }
+
+  /** Reads the state for the debug mode (F-051); it never changes the game. */
+  private updateDebug(deltaSeconds: number): void {
+    if (!this.debugOverlay.visible) {
+      return;
+    }
+
+    const sample: DebugSample = {
+      player: this.player.getGridPosition(),
+      server: this.remotePlayersManager?.localServerPosition,
+      dev: this.remoteDev?.gridPosition,
+      others: this.remotePlayersManager?.count ?? 0,
+      connected: this.multiplayerClient.isConnected(),
+    };
+    const readout = this.debugMeter.update(deltaSeconds, sample);
+
+    this.debugReadout = readout.lines;
+    this.debugOverlay.draw({ ...sample, velocity: readout.velocity });
   }
 
   /** A building shows the pointer cursor only when it can be opened from here. */
@@ -416,7 +466,9 @@ export class MainScene extends Container {
 
   private updateDepth(): void {
     for (const child of this.world.children) {
-      child.zIndex = child.y;
+      // The debug overlay stays on top of everything it marks.
+      child.zIndex =
+        child === this.debugOverlay ? Number.MAX_SAFE_INTEGER : child.y;
     }
 
     this.world.sortChildren();

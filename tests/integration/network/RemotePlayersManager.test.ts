@@ -170,6 +170,26 @@ describe("RemotePlayersManager", () => {
     }
   });
 
+  // F-051
+  it("counts the others and knows where the server last put the local player", async () => {
+    const { room, me, manager } = await joinAsMe();
+    await room.waitForNextPatch();
+
+    expect(manager.count).toBe(0);
+    expect(manager.localServerPosition).toEqual(PLAYER_SPAWN);
+
+    await colyseus().connectTo(room);
+    me.send("move", { column: PLAYER_SPAWN.column + 1, row: PLAYER_SPAWN.row });
+
+    await vi.waitFor(() => {
+      expect(manager.count).toBe(1);
+      expect(manager.localServerPosition).toEqual({
+        column: PLAYER_SPAWN.column + 1,
+        row: PLAYER_SPAWN.row,
+      });
+    });
+  });
+
   it("removes a visitor who leaves", async () => {
     const { room, remotePlayers } = await joinAsMe();
     const other = await colyseus().connectTo(room);

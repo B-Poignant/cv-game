@@ -49,7 +49,7 @@ it, or unscheduled).
 | [F-043](#f-043-reward-panel)                        | Reward panel: contact info + CV PDF      | ✅     | 2        | `src/content/contact.ts`, `src/ui/rewardSection.ts`, `src/ui/PitchFlow.ts`                                | unit                   |
 | **Display**                                         |                                          |        |          |                                                                                                           |                        |
 | [F-050](#f-050-theme-switcher)                      | Theme switcher (button top-left)         | ✅     | —        | `src/config/themes.ts`, `src/game/ThemeCycle.ts`, `src/ui/ThemeButton.ts`                                 | unit, e2e              |
-| [F-051](#f-051-debug-mode)                          | Debug mode (clickable icon + overlay)    | 💡     | —        | —                                                                                                         | —                      |
+| [F-051](#f-051-debug-mode)                          | Debug mode (clickable icon + overlay)    | ✅     | —        | `src/game/DebugMeter.ts`, `src/game/entities/DebugOverlay.ts`, `src/ui/DebugPanel.ts`                     | unit, integration, e2e |
 | [F-052](#f-052-chat-log)                            | Chat log (bottom-left)                   | ✅     | —        | `src/ui/ChatLog.ts`                                                                                       | unit, e2e              |
 | **Story & the dev**                                 |                                          |        |          |                                                                                                           |                        |
 | [F-060](#f-060-the-dev-wanders)                     | The dev wanders the map (server-run NPC) | ✅     | 1        | `server/rooms/DevWanderer.ts`, `src/network/RemoteDev.ts`, `src/game/entities/Dev.ts`                     | unit, integration, e2e |
@@ -640,26 +640,48 @@ at any point, in ID order, and should land before the game is shared publicly.
 
 ### F-051 Debug mode
 
-💡 Idea
+✅ Done
 
-- **What:** a clickable icon (e.g. "🐞", next to the theme button) toggles a debug overlay
-  that shows what the code is doing, drawn over the map:
-  - the local player's grid position (fractional and rounded tile), speed and direction
-    (arrow), and the position last accepted by the server
-  - blocked tiles from the collision map and building footprints
-  - paths and targets once movement logic exists (the dev wandering or fleeing, F-060 /
-    F-061, or any pathfinding)
-  - other visitors' positions, connection status, FPS
+- **What:** a "🐞 Debug" button (bottom-right; top-right on phones) toggles a debug mode
+  that shows what the code is doing:
+  - a text readout: the local player's position and tile, the position the server last
+    accepted, speed and direction, Ben's position, how many other visitors are in the room,
+    online or offline, and FPS
+  - over the map: a cross on every blocked tile (building footprints, the chest), an outline on
+    the player's tile and a fainter one on the server's, and an arrow for the player's velocity
 - **Design:** a developer tool outside the "Headhunted" story, but it also shows recruiters
-  how the game is built, so it fits the CV's purpose. That's why the icon is shown to every
-  visitor (no hidden flag). Keep its labels in English.
-- **To do:**
-  - an HTML toggle button like `ThemeButton` (styled in `src/style.css`, focus back to the game)
-  - a Pixi overlay container in `MainScene`, redrawn each frame only while on, with positions
-    converted through `IsometricConverter`
-  - expose the data from pure getters (e.g. `Player` speed/direction) and build the overlay
-    data in Pixi-free logic so it can be unit tested
-  - overlay colours readable on every theme (F-050), and an e2e test for the toggle
+  how the game is built, so it fits the CV's purpose. That's why the button is shown to every
+  visitor (no hidden flag). Its labels are in English.
+- **How it works:**
+  - `DebugMeter` (pure, no Pixi) turns a `DebugSample` (positions, others, connection) into
+    the readout's lines and the velocity, measured from how far the player moved since the
+    last frame; FPS is smoothed so one slow frame doesn't make it jump.
+  - `DebugOverlay` is a Pixi container in `MainScene`'s world, kept on top by the depth sort.
+    It draws through `IsometricConverter` in the theme's `label` colour (4.5:1 against the
+    tiles on every theme), has `eventMode = "none"` so clicks reach the buildings and the
+    chest, and draws the blocked tiles from `CollisionMap.blockedPositions()`.
+  - `MainScene.setDebugVisible` shows it; while visible, `update` reads the state through
+    getters only (`Player`, `RemotePlayersManager.count` and `localServerPosition`,
+    `RemoteDev.gridPosition`) and exposes `debugLines`. A fresh meter is used each time it's
+    turned on. Nothing in debug mode changes the game.
+  - `DebugPanel` (HTML, styled in `src/style.css`) holds the button (`aria-pressed`, focus
+    given back to the game) and the `<pre>` readout, set with `textContent`. `Game` wires it
+    to `MainScene` and renders the lines each frame while it's open.
+- **Code:** `src/game/DebugMeter.ts`, `src/game/entities/DebugOverlay.ts`,
+  `src/ui/DebugPanel.ts`, `src/scenes/MainScene.ts`, `src/game/Game.ts`,
+  `shared/CollisionMap.ts` (`blockedPositions`), `src/network/RemotePlayersManager.ts`
+  (`count`, `localServerPosition`)
+- **Tests:** `tests/unit/game/DebugMeter.test.ts`, `tests/unit/game/entities/DebugOverlay.test.ts`,
+  `tests/unit/ui/DebugPanel.test.ts`, `tests/unit/scenes/MainScene.test.ts` ("debug mode",
+  "keeps the debug overlay on top"), `tests/unit/shared/CollisionMap.test.ts`
+  (`blockedPositions`), `tests/integration/network/RemotePlayersManager.test.ts` (count and
+  server position); e2e `tests/e2e/debug.spec.ts` (toggle, live readout, keys still walk)
+- **Limits:**
+  - No paths or targets yet: the dev's wandering and fleeing (F-060 / F-061) run on the
+    server, which doesn't send its target. Showing them would need a synced field.
+  - The other visitors and the spam emails get no marks on the map, only the count.
+  - On a phone the open readout covers the intel cards.
+  - It isn't remembered: every visit starts with it off.
 
 ### F-052 Chat log
 

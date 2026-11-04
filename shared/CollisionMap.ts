@@ -28,6 +28,15 @@ export class CollisionMap {
     }
   }
 
+  /** Every blocked tile, in the order it was blocked (the debug overlay draws them, F-051). */
+  public blockedPositions(): GridPosition[] {
+    return [...this.blockedTiles].map((key) => {
+      const [column = 0, row = 0] = key.split(":").map(Number);
+
+      return { column, row };
+    });
+  }
+
   public isBlocked(position: GridPosition): boolean {
     const column = Math.round(position.column);
 

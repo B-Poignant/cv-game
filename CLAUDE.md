@@ -34,8 +34,9 @@ npm run check        # typecheck + lint + format:check + test (run before finish
 src/
   main.ts            entry: creates Game
   game/              engine core: Game (Pixi app), Map, Camera, Player,
-                     IsometricConverter (grid <-> screen), AchievementTracker, DevChatter, ThemeCycle
-    entities/        world objects (Building, Chest, Dev, DistrictGround, NameTag, SpamEmail)
+                     IsometricConverter (grid <-> screen), AchievementTracker, DevChatter, ThemeCycle,
+                     DebugMeter (the debug readout, F-051)
+    entities/        world objects (Building, Chest, DebugOverlay, Dev, DistrictGround, NameTag, SpamEmail)
     factories/       builders for entities from config
     minigames/       the Minigame contract every minigame implements (F-070), and one
                      folder per minigame (skillBreakout/, careerTimeline/, educationQuiz/: rules + view,
@@ -44,7 +45,7 @@ src/
                      minigames/registry.ts (which building runs which minigame)
   ui/                HTML UI over the canvas: CvPanel + cvSections, ThemeButton, IdentityPanel,
                      IntelInventory, ChatLog, PitchDialog + PitchFlow + rewardSection, AchievementsPanel +
-                     AchievementToast (F-041)
+                     AchievementToast (F-041), DebugPanel (F-051)
   domain/            plain CV data types (Experience, Skill, Project, Education), no Pixi
   config/            client-only static data (themes.ts palettes, achievements.ts, devLines.ts)
   cvPage/            the classic HTML CV page (F-032): pure string building, no DOM or Pixi;

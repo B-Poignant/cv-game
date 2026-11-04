@@ -8,6 +8,9 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Added
 
+- F-051: a debug mode. The 🐞 Debug button shows a live readout (position, the server's
+  position, speed and direction, Ben, the others, the network, FPS) and marks the blocked
+  tiles, the player's tile and its velocity on the map.
 - F-075: the skill breakout hides the mouse cursor over its field, since the paddle already
   follows the pointer. The timeline and the quiz, played with buttons, keep it.
 - F-083: pushing a `v*` release tag publishes the Docker image to GitHub Container Registry

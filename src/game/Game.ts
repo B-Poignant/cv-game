@@ -13,6 +13,7 @@ import { AchievementsPanel } from "../ui/AchievementsPanel";
 import { AchievementToast } from "../ui/AchievementToast";
 import { ChatLog } from "../ui/ChatLog";
 import { CvPanel } from "../ui/CvPanel";
+import { DebugPanel } from "../ui/DebugPanel";
 import { IdentityPanel } from "../ui/IdentityPanel";
 import { IntelInventory } from "../ui/IntelInventory";
 import { PitchDialog } from "../ui/PitchDialog";
@@ -33,6 +34,7 @@ export class Game {
   private pitchDialog?: PitchDialog;
   private achievementsPanel?: AchievementsPanel;
   private achievementToast?: AchievementToast;
+  private debugPanel?: DebugPanel;
 
   private started = false;
   private destroyed = false;
@@ -134,6 +136,8 @@ export class Game {
     this.mainScene.applyTheme(themes.current);
     minigameScene.applyTheme(themes.current);
     this.themeButton = new ThemeButton(themes);
+    this.debugPanel = new DebugPanel();
+    this.debugPanel.onToggle((open) => this.mainScene?.setDebugVisible(open));
 
     this.app.ticker.add(this.update);
 
@@ -165,6 +169,9 @@ export class Game {
   private update = (ticker: Ticker): void => {
     this.mainScene?.update(ticker.deltaMS / 1000);
     this.minigameScene?.update(ticker.deltaMS / 1000);
+    if (this.mainScene) {
+      this.debugPanel?.render(this.mainScene.debugLines);
+    }
   };
 
   public destroy(): void {
@@ -199,6 +206,9 @@ export class Game {
 
     this.achievementToast?.destroy();
     this.achievementToast = undefined;
+
+    this.debugPanel?.destroy();
+    this.debugPanel = undefined;
 
     this.minigameScene?.destroy(true);
     this.minigameScene = undefined;

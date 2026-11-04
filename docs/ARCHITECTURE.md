@@ -217,9 +217,10 @@ The client reads it through `Callbacks` with `import type` of the schema type.
 
 ### A debug overlay (F-051)
 
-Compute what to show (positions, paths, speed) in pure functions and draw it in one overlay
-`Container` added to `MainScene`'s world. Expose data through getters; never let the overlay
-change game state.
+`DebugMeter` (pure) computes what to show from a `DebugSample` that `MainScene` reads through
+getters; `DebugOverlay`, one `Container` in `MainScene`'s world, draws it, and `DebugPanel`
+(HTML) shows the readout. To show something new, add it to `DebugSample` and read it from a
+getter; never let the debug mode change game state.
 
 ## Known architectural debts
 
@@ -229,4 +230,4 @@ Things that are in the way of scaling. Fix them when a feature touches them.
 | --------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `MainScene` creates its own `MultiplayerClient` (its URL comes from `serverEndpoint`)   | `src/scenes/MainScene.ts`, `MultiplayerClient`      | Hard to swap. Tests have to mock the module.                                     |
 | No reconciliation: a rejected move leaves the local player out of sync with the server  | `Player`, `MainScene`                               | The local and server positions can drift apart.                                  |
-| `MainScene` (~400 lines) and `CvRoom` (~360) keep growing, over the ~200-line guideline | `src/scenes/MainScene.ts`, `server/rooms/CvRoom.ts` | Split the network wiring and the spam sync out when a feature next touches them. |
+| `MainScene` (~510 lines) and `CvRoom` (~390) keep growing, over the ~200-line guideline | `src/scenes/MainScene.ts`, `server/rooms/CvRoom.ts` | Split the network wiring and the spam sync out when a feature next touches them. |

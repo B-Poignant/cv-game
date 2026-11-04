@@ -108,6 +108,18 @@ export class RemotePlayersManager {
     this.players.delete(sessionId);
   }
 
+  /** How many other visitors are drawn (the debug readout, F-051). */
+  public get count(): number {
+    return this.players.size;
+  }
+
+  /** The local player's position as the server last accepted it (the debug mode, F-051). */
+  public get localServerPosition(): GridPosition | undefined {
+    const state = this.room.state.players.get(this.room.sessionId);
+
+    return state ? { column: state.column, row: state.row } : undefined;
+  }
+
   /** Recolours every visitor's name tag, now and for visitors who join later. */
   public applyTheme(theme: Theme): void {
     this.theme = theme;
