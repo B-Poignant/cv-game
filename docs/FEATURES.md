@@ -62,6 +62,7 @@ it, or unscheduled).
 | [F-072](#f-072-experience-avenue-career-timeline)   | Experience Avenue: career timeline       | ✅     | 4        | `src/game/minigames/careerTimeline/`                                                                      | unit, e2e              |
 | [F-073](#f-073-projects-lab-match-up)               | Projects Lab: match-up                   | 💡     | 4        | —                                                                                                         | —                      |
 | [F-074](#f-074-education-campus-quiz)               | Education Campus: quiz                   | ✅     | 4        | `src/game/minigames/educationQuiz/`                                                                       | unit                   |
+| [F-075](#f-075-hide-the-cursor-in-minigames)        | Hide the cursor in minigames             | 📋     | —        | —                                                                                                         | —                      |
 | **Delivery & deployment**                           |                                          |        |          |                                                                                                           |                        |
 | [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | Delivery | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration      |
 | [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | ✅     | Delivery | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test          |
@@ -992,6 +993,22 @@ at any point, in ID order, and should land before the game is shared publicly.
   `tests/unit/ui/IntelInventory.test.ts`. No e2e test.
 - **Limits:** the questions are in English, the answers in French (as in the CV). There is no
   replay once the card is held.
+
+### F-075 Hide the cursor in minigames
+
+📋 Planned
+
+- **What:** a minigame that doesn't need the mouse cursor hides it while it plays. In the
+  skill breakout (F-071) the paddle follows the pointer, so the paddle is the cursor and the
+  arrow over the field only gets in the way. The career timeline (F-072) and the quiz (F-074)
+  are played by clicking buttons, so they keep it.
+- **To do:**
+  - Let a minigame say whether it needs the cursor (e.g. a flag in the `Minigame` contract,
+    F-070), and have `MinigameScene` hide it (`cursor: none`) while that minigame plays,
+    then restore it on a win, a loss, Escape or cleanup.
+  - Hide it only over the play field, so the HUD and the rest of the page keep it.
+  - Unit tests: hidden while playing, restored on every way out, kept for the timeline and
+    the quiz.
 
 ## Delivery & deployment
 
