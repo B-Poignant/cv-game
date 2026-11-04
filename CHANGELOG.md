@@ -6,6 +6,12 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ## [Unreleased]
 
+### Changed
+
+- CI: the GitHub Actions run on Node 24 (checkout, setup-node and upload-artifact v7,
+  Docker build-push v7, setup-buildx and login v4, metadata v6), which silences the
+  Node 20 deprecation warnings.
+
 ## [0.1.0] - 2026-11-04
 
 ### Added
