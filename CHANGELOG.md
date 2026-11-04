@@ -6,6 +6,12 @@ to [docs/FEATURES.md](docs/FEATURES.md).
 
 ## [Unreleased]
 
+### Added
+
+- F-084: the game is online at `https://cv-game-poignant.fly.dev`, on Fly.io (`fly.toml`:
+  one always-on Machine in Paris, HTTPS, `/health` check). `docs/DEPLOY.md` has the deploy,
+  logs, rollback and shutdown commands.
+
 ### Changed
 
 - CI: the GitHub Actions run on Node 24 (checkout, setup-node and upload-artifact v7,

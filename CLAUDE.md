@@ -81,6 +81,7 @@ docs/
   FEATURES.md        feature registry: every feature, its status and how it works
   ARCHITECTURE.md    layers + import rules, data flow, how to extend, known debts
   CODE_STYLE.md      naming, TypeScript, async, Pixi, DOM and comment rules
+  DEPLOY.md          deploying to Fly.io (F-084): first deploy, logs, rollback
   reviews/           whole-project review reports (review-project skill), one per date
 .claude/
   skills/            repeatable workflows (see "Skills and agents")

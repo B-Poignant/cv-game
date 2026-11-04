@@ -68,7 +68,7 @@ it, or unscheduled).
 | [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | ✅     | Delivery | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test          |
 | [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
 | [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
-| [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | 💡     | Delivery | —                                                                                                         | —                      |
+| [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | ✅     | Delivery | `fly.toml`, `docs/DEPLOY.md`                                                                              | manual                 |
 
 ## Roadmap
 
@@ -1122,20 +1122,25 @@ provider lock-in.
 
 ### F-084 Deploy to a host
 
-💡 Idea
+✅ Done: deployed by the owner at `https://cv-game-poignant.fly.dev` (Fly.io trial).
 
-- **What:** run the published image somewhere public, behind HTTPS so the WebSocket uses
-  `wss://`.
-- **Design:** the image stays host-agnostic. The host is still open (a VPS with
-  `docker compose` + a reverse proxy such as Caddy, or a container platform such as Fly.io,
-  Render or Railway). Pick one before moving this to 📋.
+- **What:** run the game somewhere public, behind HTTPS so the WebSocket uses `wss://`.
+- **Design:** the image stays host-agnostic (F-081). The host is Fly.io: it runs the
+  `Dockerfile` as is, terminates TLS, handles WebSockets, and can keep exactly one Machine on.
+- **How it works:** `fly.toml` runs one `shared-cpu-1x` Machine (512 MB) in Paris (`cdg`) on
+  port 2567, with auto-stop off and `min_machines_running = 1`: Colyseus keeps rooms in
+  memory, so a second Machine would split the visitors and a stopped one would drop them.
+  `force_https` redirects HTTP, and Fly.io checks `GET /health` every 30 s. The client
+  already connects to the page's own origin in production (`serverEndpoint`, F-080).
+  `docs/DEPLOY.md` has the commands (deploy with `--ha=false`), the logs and the rollback.
+- **Code:** `fly.toml`, `docs/DEPLOY.md`
+- **Tests:** checked by hand on the first deploy (`fly status`, the game loading); no automated
+  check of the live site.
 - **To do:**
-  - choose the host, then write `docs/DEPLOY.md` (env vars, ports, TLS, health check, rollback
-    to a previous image tag)
-  - optional continuous deployment: deploy the new image automatically after F-083 publishes
-    it, with the secrets kept in GitHub environment secrets
-  - Colyseus keeps rooms in memory, so run one instance (scaling out needs a presence driver
-    such as Redis)
+  - add a card after the trial (its Machines stop after 5 minutes), so the Machine stays on
+  - optional: a custom domain, and a CI job that runs `fly deploy` after F-083 publishes
+- **Limits:** one Machine in one region: scaling out would need a Colyseus presence driver
+  (such as Redis).
 
 ## Removed
 

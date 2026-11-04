@@ -18,7 +18,8 @@ is, and the winner gets his real contact details and CV. The full story and rule
 > minigame first), and with 3 cards you can catch him and pitch him a job; a good pitch shows
 > his contact details and CV. Ben taunts you in speech bubbles, spam emails slow you down, and
 > five achievements are up for grabs. A 🐞 debug mode shows what the code is doing. Only the Projects Lab minigame is missing (the CV has
-> no projects yet). Prefer to skip the game? A classic HTML CV is served at `/cv/`.
+> no projects yet). Prefer to skip the game? A classic HTML CV is served at `/cv/`. It's
+> online at <https://cv-game-poignant.fly.dev> (see [docs/DEPLOY.md](docs/DEPLOY.md)).
 
 ## Features
 
@@ -154,8 +155,10 @@ docs/
   FEATURES.md        feature registry: status and how each feature works
   ARCHITECTURE.md    layers, data flow, how to extend
   CODE_STYLE.md      how to write the code
+  DEPLOY.md          deploying to Fly.io
 .github/workflows/   CI (typecheck, lint, tests, build, e2e, Docker smoke test, image publish on release)
 Dockerfile           production image (server + built client), compose.yaml to run it
+fly.toml             Fly.io config (one Machine in Paris, F-084)
 .claude/             Claude Code skills, agents and hooks
 ```
 

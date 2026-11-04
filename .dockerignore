@@ -23,6 +23,7 @@ docs
 Dockerfile
 .dockerignore
 compose.yaml
+fly.toml
 
 # Raw LinkedIn export (sync-cv skill)
 cv-source
