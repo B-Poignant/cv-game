@@ -67,7 +67,7 @@ it, or unscheduled).
 | [F-080](#f-080-production-server-config)            | Production server config                 | ✅     | Delivery | `server/http.ts`, `server/app.config.ts`, `src/network/serverEndpoint.ts`                                 | unit, integration      |
 | [F-081](#f-081-docker-image)                        | Docker image (server + built client)     | ✅     | Delivery | `Dockerfile`, `compose.yaml`                                                                              | CI smoke test          |
 | [F-082](#f-082-ci-builds-and-smoke-tests-the-image) | CI builds and smoke-tests the image      | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
-| [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | 🚧     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
+| [F-083](#f-083-publish-the-image-on-release)        | Publish the image on release             | ✅     | Delivery | `.github/workflows/ci.yml`                                                                                | CI itself              |
 | [F-084](#f-084-deploy-to-a-host)                    | Deploy to a host                         | 💡     | Delivery | —                                                                                                         | —                      |
 
 ## Roadmap
@@ -1102,7 +1102,7 @@ provider lock-in.
 
 ### F-083 Publish the image on release
 
-🚧 In progress: the workflow is written; it hasn't run yet, since no `v*` tag has been pushed.
+✅ Done: the `publish` job went green on the first release tag, `v0.1.0`.
 
 - **What:** cutting a release publishes a versioned image to a registry, ready to deploy.
 - **Depends on:** F-082.
@@ -1114,11 +1114,11 @@ provider lock-in.
   the git tag, and builds and pushes `ghcr.io/b-poignant/cv-game` with the layer cache the
   `docker` job filled. The `release` skill (step 5) says what to tell the user after the push.
 - **Code:** `.github/workflows/ci.yml` (`publish` job), `.claude/skills/release/SKILL.md`
-- **Tests:** CI itself, on the first release tag.
-- **To do:**
-  - push the first release tag and check the job publishes the three tags; then mark ✅
-  - make the package public once in its GitHub settings (it starts private)
-- **Limits:** the image is built for `linux/amd64` only.
+- **Tests:** CI itself: the `publish` job fails if the login, the build or the push does.
+- **Limits:**
+  - The image is built for `linux/amd64` only.
+  - A new package starts private on GitHub: anyone else can pull it only once the owner makes it
+    public in its package settings.
 
 ### F-084 Deploy to a host
 
